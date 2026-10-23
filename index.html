@@ -49,6 +49,13 @@
   label { display:block; margin:12px 0 4px; font-weight:500; } input, select { width:100%; padding:8px 10px; border:1px solid var(--line); border-radius:10px; font:inherit; }
   .row { display:flex; gap:10px; justify-content:flex-end; margin-top:20px; }
   #toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:var(--navy); color:#fff; padding:10px 18px; border-radius:12px; display:none; max-width:90vw; }
+  details { border-top:1px solid var(--line); padding:9px 0; } summary { cursor:pointer; } summary span { color:var(--muted); }
+  .ans { white-space:pre-wrap; margin:4px 0 12px; } .ans b { display:block; color:var(--navy); margin-top:10px; font-weight:600; }
+  .tabs { display:flex; gap:8px; margin:6px 0 0; } button.tab { border-radius:12px; padding:8px 18px; } button.tab.on { background:var(--navy); border-color:var(--navy); color:#fff; }
+  .pill.Approved { background:var(--green); } .pill.Rejected { background:var(--red); } .pill.cond { background:var(--amber); }
+  .detailBox h3 { font:600 17px "Source Serif 4",serif; color:var(--navy); margin:18px 0 2px; } .detailBox .meta, .none { color:var(--muted); } input.search { max-width:340px; margin:10px 0; }
+  tr.detailRow > td { background:#f3f7fe; padding:6px 18px 16px; border-top:0; }
+  a { color:var(--blue); }
   @media (prefers-reduced-motion:reduce) { .changed { animation:none; } }
 </style>
 </head>
@@ -79,8 +86,8 @@
 
 <script>
 // ---- Fill these two in ----
-var SHEET_ID = '1iRtljCvhJPqQS97tjYlGerh7adp54k4Wre0_Yj_SSnw';     // the Tracker spreadsheet ID (shared: Anyone with the link, Viewer)
-var WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbzMSnf7_El45BG7VITVkrTpqrfqNQ_A-XWZ5hZQtvrtpnovAzHTAwPg249CRkLqVchZ/exec';   // Apps Script web app URL ending in /exec (only needed for editing)
+var SHEET_ID = '';     // the Tracker spreadsheet ID (shared: Anyone with the link, Viewer)
+var WEBAPP_URL = '';   // Apps Script web app URL ending in /exec (only needed for editing)
 // ---------------------------
 var POLL_MS = 30000, pin = sessionStorage.getItem('dscdaPin') || '', prev = {};
 var $ = function (id) { return document.getElementById(id); };
@@ -89,67 +96,53 @@ var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, fu
 // ---- READ: straight from the sheet, no server ----
 function toDate(v) {
   if (v instanceof Date) return v;
-  var m = typeof v === 'string' && v.match(/^Date\((\d+),(\d+),(\d+)/);
-  return m ? new Date(+m[1], +m[2], +m[3]) : null;
+  var m = typeof v === 'string' && v.match(/^Date\((\d+),(\d+),(\d+)(?:,(\d+),(\d+),(\d+))?/);
+  return m ? new Date(+m[1], +m[2], +m[3], +(m[4] || 0), +(m[5] || 0), +(m[6] || 0)) : null;
 }
 function fetchTracker() {
-  var url = 'https://docs.google.com/spreadsheets/d/' +
-    SHEET_ID +
-    '/gviz/tq?tqx=out:json&headers=1&sheet=Tracker&range=A1:Q5000';
-
-  return fetch(url)
-    .then(function (response) {
-      if (!response.ok) {
-        throw new Error('Google Sheets returned HTTP ' + response.status);
-      }
-      return response.text();
-    })
-    .then(function (text) {
-      var start = text.indexOf('{');
-      var end = text.lastIndexOf('}');
-
-      if (start === -1 || end === -1 || end < start) {
-        throw new Error(
-          'Invalid Google Sheets response. Check spreadsheet sharing and the Tracker tab.'
-        );
-      }
-
-      var jsonText = text.substring(start, end + 1);
-      var result;
-
-      try {
-        result = JSON.parse(jsonText);
-      } catch (error) {
-        throw new Error(
-          'Google Sheets returned invalid JSON: ' + error.message
-        );
-      }
-
-      if (!result.table || !result.table.rows) {
-        throw new Error(
-          'No table data returned. Check that the Tracker tab exists and is accessible.'
-        );
-      }
-
-      return result.table.rows.map(function (row) {
-        return (row.c || []).map(function (cell) {
-          return cell ? cell.v : null;
-        });
-      });
-    });
+  var url = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?tqx=out:json&headers=1&sheet=Tracker&tq=' + encodeURIComponent('select A,B,C,D,E,F,G,K,L,M,N,O,P,Q,T,U');
+  return fetch(url).then(function (r) { return r.text(); }).then(function (t) {
+    var i = t.indexOf('{'), j = t.lastIndexOf('}');
+    if (i < 0) throw new Error('Could not read the sheet. Share it as "Anyone with the link: Viewer".');
+    var table = JSON.parse(t.substring(i, j + 1)).table;
+    return table.rows.map(function (r) { return r.c.map(function (c) { return c ? c.v : null; }); });
+  });
 }
-// Columns by position (A..Q), same layout the scripts write.
-var C = { ID:0, NAME:1, VERT:2, TYPE:3, STAGE:4, STATUS:5, OPENED:6, MD_DATE:10, DECISION:11, FOLDER:12, MDO_SLA:13, ACC_SLA:14, CA_SLA:15, PRIORITY:16 };
+// Positions within the columns selected above: A,B,C,D,E,F,G,K,L,M,N,O,P,Q,T,U
+var C = { ID:0, NAME:1, VERT:2, TYPE:3, STAGE:4, STATUS:5, OPENED:6, MD_DATE:7, DECISION:8, FOLDER:9, MDO_SLA:10, ACC_SLA:11, CA_SLA:12, PRIORITY:13, SR_FLAG:14, SR_DATE:15 };
+var SR_QUESTIONS = ['Key People Met & Designation', 'Facility & Operations', 'Current & Future Business Plan', 'Financials', 'Questions / Concerns Clarified', 'Red Flags', 'Recommendation', 'Comments'];
+
+// Reads one form-response tab; columns are found by header name. A missing tab can silently
+// return a different sheet, so each tab must contain its own known question (plus Timestamp).
+function fetchFormTab(tab, mustHave) {
+  var url = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?tqx=out:json&headers=1&sheet=' + tab;
+  return fetch(url).then(function (r) { return r.text(); }).then(function (t) {
+    var table = JSON.parse(t.substring(t.indexOf('{'), t.lastIndexOf('}') + 1)).table;
+    var labels = table.cols.map(function (c) { return c.label; });
+    if (labels.indexOf('Case ID') < 0 || labels.indexOf(mustHave) < 0 || labels.indexOf('Timestamp') < 0) return { labels: [], rows: [] };
+    var rows = table.rows.map(function (r) {
+      var o = {}; labels.forEach(function (l, i) { o[l] = r.c[i] ? r.c[i].v : null; }); return o;
+    }).filter(function (o) { return o['Case ID']; });
+    return { labels: labels, rows: rows };
+  }).catch(function () { return { labels: [], rows: [] }; });
+}
+function fetchSecond() {
+  return fetchFormTab('Form5_SecondReview', 'Key People Met & Designation').then(function (f) { return f.rows.slice().reverse(); });
+}
 function str(r, i) { return String(r[i] == null ? '' : r[i]).trim(); }
 
-function compute(all) {
+function compute(all, second) {
   var rows = all.filter(function (r) { return r[C.ID]; }), now = new Date(), ms = new Date(now.getFullYear(), now.getMonth(), 1);
   var d = { updated: now.toLocaleTimeString(), kpi: { total: rows.length, open: 0, closed: 0, cm: 0, late: 0, high: 0, medium: 0, low: 0 },
     pipeline: { MDO: 0, Accounts: 0, CA: 0, MD: 0 }, vertical: { Polymer: 0, Textile: 0 }, caseType: { NEW: 0, ANNUAL: 0, EXCEPTION: 0 },
     sla: { MDO: { OK: 0, LATE: 0, Done: 0 }, Accounts: { OK: 0, LATE: 0, Done: 0 }, CA: { OK: 0, LATE: 0, Done: 0 } },
-    decisions: { 'Approved': 0, 'Approved with conditions': 0, 'Rejected': 0, 'Flagged for monitoring': 0 }, cases: [] };
+    decisions: { 'Approved': 0, 'Approved with conditions': 0, 'Rejected': 0, 'Flagged for monitoring': 0 }, cases: [],
+    sr: { awaiting: [], done: second || [] }, closed: [], byId: {} };
   var has = function (o, k) { return Object.prototype.hasOwnProperty.call(o, k); };
   rows.forEach(function (r) {
+    var info = { id: str(r, C.ID), name: str(r, C.NAME), vertical: str(r, C.VERT), type: str(r, C.TYPE), stage: str(r, C.STAGE), status: str(r, C.STATUS),
+      priority: str(r, C.PRIORITY), decision: str(r, C.DECISION), folder: str(r, C.FOLDER), opened: toDate(r[C.OPENED]), closedOn: toDate(r[C.MD_DATE]) };
+    d.byId[info.id] = info;
     var st = str(r, C.STATUS), pr = str(r, C.PRIORITY), s1 = str(r, C.MDO_SLA), s2 = str(r, C.ACC_SLA), s3 = str(r, C.CA_SLA);
     if (st === 'Open') {
       d.kpi.open++;
@@ -161,14 +154,16 @@ function compute(all) {
       d.cases.push({ id: str(r, C.ID), name: str(r, C.NAME), vertical: str(r, C.VERT), stage: str(r, C.STAGE), priority: pr,
         folder: str(r, C.FOLDER), t: o ? o.getTime() : Infinity, days: o ? Math.floor((now - o) / 86400000) : '' });
     } else if (st === 'Closed') {
-      d.kpi.closed++;
+      d.kpi.closed++; d.closed.push(info);
       if (has(d.decisions, str(r, C.DECISION))) d.decisions[str(r, C.DECISION)]++;
       var md = toDate(r[C.MD_DATE]); if (md && md >= ms && md <= now) d.kpi.cm++;
     }
+    if (str(r, C.SR_FLAG) === 'Yes' && !r[C.SR_DATE]) d.sr.awaiting.push({ id: str(r, C.ID), name: str(r, C.NAME), vertical: str(r, C.VERT), status: st, decision: str(r, C.DECISION) });
     if (s1 === 'LATE' || s2 === 'LATE' || s3 === 'LATE') d.kpi.late++;
     if (has(d.sla.MDO, s1)) d.sla.MDO[s1]++; if (has(d.sla.Accounts, s2)) d.sla.Accounts[s2]++; if (has(d.sla.CA, s3)) d.sla.CA[s3]++;
   });
   d.cases.sort(function (a, b) { return a.t - b.t; });
+  d.closed.sort(function (a, b) { return (b.closedOn ? b.closedOn.getTime() : 0) - (a.closedOn ? a.closedOn.getTime() : 0); });
   return d;
 }
 
@@ -202,7 +197,7 @@ function stat(label, k, v, cls) {
   return '<div class="card ' + (cls || '') + '"><div class="mono">' + label + '</div><div class="big' + (c ? ' changed' : '') + '">' + v + '</div></div>';
 }
 
-function render(d) {
+function overviewHtml(d) {
   var k = d.kpi, can = unlocked();
   var h = '<h2>Snapshot</h2><div class="grid">' +
     stat('Open cases', 'open', k.open) + stat('Closed this month', 'cm', k.cm) +
@@ -213,27 +208,135 @@ function render(d) {
   h += '</div><div class="grid" style="margin-top:16px"><div class="card"><div class="mono">SLA health</div><table><tr><th></th><th class="n">On time</th><th class="n">Late</th><th class="n">Done</th></tr>';
   ['MDO', 'Accounts', 'CA'].forEach(function (s) { var x = d.sla[s]; h += '<tr><td>' + s + '</td>' + num('so' + s, x.OK) + num('sl' + s, x.LATE) + num('sd' + s, x.Done) + '</tr>'; });
   h += '</table></div>' + list('Open by vertical', d.vertical, 'v') + list('Open by case type', d.caseType, 'c') + list('Final decisions', d.decisions, 'd') + '</div>';
+  h += '<h2>Second reviews</h2><div class="grid">' + stat('Flagged, review not yet done', 'sra', d.sr.awaiting.length, d.sr.awaiting.length ? 'amber' : '') +
+    stat('Second reviews completed', 'srd', d.sr.done.length, 'green') + '</div>';
+  h += '<div class="card" style="margin-top:16px"><div class="mono">Flagged by Accounts or the CA, no review submitted yet</div>';
+  if (!d.sr.awaiting.length) h += '<p>None right now.</p>';
+  else {
+    h += '<div class="scroll"><table><tr><th>Case ID</th><th>Customer</th><th>Vertical</th><th>Case status</th><th>Final decision</th></tr>';
+    d.sr.awaiting.forEach(function (r) { h += '<tr><td>' + caseLink(r.id) + '</td><td>' + esc(r.name) + '</td><td>' + esc(r.vertical) + '</td><td>' + esc(r.status) + '</td><td>' + esc(r.decision) + '</td></tr>'; });
+    h += '</table></div>';
+  }
+  h += '</div><div class="card" style="margin-top:16px"><div class="mono">Completed second reviews, newest first</div>';
+  if (!d.sr.done.length) h += '<p>No second review has been submitted yet.</p>';
+  d.sr.done.forEach(function (s) {
+    var when = toDate(s['Timestamp']), rec = String(s['Recommendation'] || '');
+    h += '<details><summary><b>' + esc(s['Case ID']) + '</b> ' + esc(s['Customer Name']) + ' <span>' + (when ? esc(when.toLocaleDateString()) + '. ' : '') +
+      esc(rec.length > 90 ? rec.slice(0, 90) + '...' : rec) + '</span></summary><div class="ans">';
+    SR_QUESTIONS.forEach(function (q) { h += '<b>' + esc(q) + '</b>' + esc(s[q] || '-'); });
+    h += '</div></details>';
+  });
+  h += '</div>';
   h += '<div class="head"><h2>Open cases, oldest first</h2>' + (can ? '<button class="solid" id="newBtn">Open new case</button>' : '') + '</div><div class="card scroll">';
   if (!d.cases.length) h += 'No open cases right now.';
   else {
     h += '<table><tr><th>Case ID</th><th>Customer</th><th>Vertical</th><th>Waiting on</th><th>Priority</th><th class="n">Days open</th><th></th></tr>';
     d.cases.forEach(function (r) {
-      h += '<tr><td>' + (can && r.folder ? '<a href="' + esc(r.folder) + '" target="_blank" rel="noopener">' + esc(r.id) + '</a>' : esc(r.id)) + '</td><td>' + esc(r.name) +
+      h += '<tr><td>' + caseLink(r.id) + '</td><td>' + esc(r.name) +
         '</td><td>' + esc(r.vertical) + '</td><td>' + esc(r.stage) + '</td><td>' + (r.priority ? '<span class="pill ' + esc(r.priority) + '">' + esc(r.priority) + '</span>' : '') +
         '</td><td class="n">' + esc(r.days) + '</td><td>' + (can ? '<button data-resend="' + esc(r.id) + '">Resend email</button>' : '') + '</td></tr>';
     });
     h += '</table>';
   }
-  $('app').innerHTML = h + '</div>';
+  return h + '</div>';
+}
+
+var view = 'overview', lastData = null, closedQuery = '';
+function caseLink(id) { return '<a href="#" data-case="' + esc(id) + '">' + esc(id) + '</a>'; }
+function decCls(x) { return x === 'Approved' ? 'Approved' : x === 'Rejected' ? 'Rejected' : x ? 'cond' : ''; }
+function fmt(dt) { return dt ? dt.toLocaleDateString() : ''; }
+
+function closedRows(d) {
+  var q = closedQuery.toLowerCase(), h = '';
+  var list = d.closed.filter(function (c) { return !q || (c.id + ' ' + c.name + ' ' + c.decision + ' ' + c.vertical).toLowerCase().indexOf(q) > -1; });
+  if (!list.length) return '<p class="none">No closed cases match.</p>';
+  h += '<div class="scroll"><table><tr><th>Case ID</th><th>Customer</th><th>Vertical</th><th>Type</th><th>Final decision</th><th>Closed on</th><th class="n">Days taken</th></tr>';
+  list.forEach(function (c) {
+    var days = c.opened && c.closedOn ? Math.floor((c.closedOn - c.opened) / 86400000) : '';
+    h += '<tr><td>' + caseLink(c.id) + '</td><td>' + esc(c.name) + '</td><td>' + esc(c.vertical) + '</td><td>' + esc(c.type) + '</td><td>' +
+      (c.decision ? '<span class="pill ' + decCls(c.decision) + '">' + esc(c.decision) + '</span>' : '') + '</td><td>' + esc(fmt(c.closedOn)) + '</td><td class="n">' + esc(days) + '</td></tr>';
+  });
+  return h + '</table></div>';
+}
+
+function render(d) {
+  lastData = d;
+  var h = '<div class="tabs"><button class="tab' + (view === 'overview' ? ' on' : '') + '" data-view="overview">Overview</button>' +
+          '<button class="tab' + (view === 'closed' ? ' on' : '') + '" data-view="closed">Closed cases (' + d.closed.length + ')</button></div>';
+  if (view === 'closed') {
+    h += '<h2>All closed cases</h2><div class="card"><input class="search" id="q" placeholder="Search case ID, customer, decision..." value="' + esc(closedQuery) + '">' +
+         '<div id="closedList">' + closedRows(d) + '</div></div>';
+  } else h += overviewHtml(d);
+  $('app').innerHTML = h;
+  restoreExpanded();
   live('Updated ' + d.updated + '. Checks for changes every 30 seconds.', false);
 }
 
+// ---- Case detail: every form response for one case ----
+var formTabs = [['Form1_MDO', 'MDO Stage 1', 'Visit Form uploaded?'], ['Form2_Accounts', 'Accounts check', 'Prompt Output Received'],
+                ['Form3_CA', 'CA review', 'CA Recommendation'], ['Form4_MD', 'MD final decision', 'Comments for MDO'], ['Form5_SecondReview', 'Second review', 'Key People Met & Designation']];
+var forms = null, formsAt = 0;
+function loadForms() {
+  if (forms && Date.now() - formsAt < 30000) return Promise.resolve(forms);
+  return Promise.all(formTabs.map(function (f) { return fetchFormTab(f[0], f[2]); })).then(function (r) { forms = r; formsAt = Date.now(); return r; });
+}
+function linkify(t) { return esc(t).replace(/(https?:\/\/[^\s,<]+)/g, '<a href="$1" target="_blank" rel="noopener">Open file</a>'); }
+function detailHtml(c, data) {
+  var h = '<div class="detailBox"><div class="meta">' + [c.vertical, c.type, c.status === 'Closed' ? 'Closed' : 'Waiting on ' + c.stage, c.decision, c.priority && c.priority + ' priority'].filter(Boolean).map(esc).join('. ') +
+    (c.folder ? '. <a href="' + esc(c.folder) + '" target="_blank" rel="noopener">Case folder</a>' : '') + '</div>';
+  var skip = ['Timestamp', 'Case ID', 'Customer Name', 'Company Name'];
+  formTabs.forEach(function (f, i) {
+    var mine = data[i].rows.filter(function (o) { return String(o['Case ID']).trim() === c.id; });
+    h += '<h3>' + f[1] + '</h3>';
+    if (!mine.length) { h += '<div class="none">No response yet.</div>'; return; }
+    mine.forEach(function (o) {
+      var when = toDate(o['Timestamp']);
+      h += '<div class="meta">Submitted ' + esc(when ? when.toLocaleString() : '') + '</div><div class="ans">';
+      data[i].labels.forEach(function (l) {
+        if (skip.indexOf(l) > -1 || o[l] == null || String(o[l]).trim() === '') return;
+        h += '<b>' + esc(l) + '</b>' + linkify(o[l]);
+      });
+      h += '</div>';
+    });
+  });
+  return h + '</div>';
+}
+// Responses appear inline, directly under the case's row. Expanded cases stay open across the 30 s refresh.
+var expanded = {};
+function fillDetail(box, id) {
+  var c = lastData && lastData.byId[id]; if (!c) return;
+  if (forms) box.innerHTML = detailHtml(c, forms); // show what we already have, then refresh quietly
+  loadForms().then(function (data) { box.innerHTML = detailHtml(c, data); });
+}
+function insertDetail(tr, id) {
+  var row = document.createElement('tr'); row.className = 'detailRow';
+  row.innerHTML = '<td colspan="' + tr.cells.length + '"><div class="detailBox none">Loading responses...</div></td>';
+  tr.parentNode.insertBefore(row, tr.nextSibling);
+  fillDetail(row.firstChild.firstChild, id);
+}
+function toggleCase(a) {
+  var id = a.getAttribute('data-case'), tr = a.closest('tr'), nxt = tr.nextElementSibling;
+  if (nxt && nxt.className === 'detailRow') { nxt.remove(); delete expanded[id]; a.setAttribute('aria-expanded', 'false'); return; }
+  expanded[id] = true; a.setAttribute('aria-expanded', 'true'); insertDetail(tr, id);
+}
+function restoreExpanded() {
+  var links = document.querySelectorAll('a[data-case]');
+  for (var i = 0; i < links.length; i++) {
+    var id = links[i].getAttribute('data-case');
+    if (expanded[id]) { links[i].setAttribute('aria-expanded', 'true'); insertDetail(links[i].closest('tr'), id); }
+  }
+}
+
 function load() {
-  fetchTracker().then(function (rows) { render(compute(rows)); })
+  Promise.all([fetchTracker(), fetchSecond()]).then(function (x) { render(compute(x[0], x[1])); })
     .catch(function (e) { live(e.message + ' Retrying.', true); });
 }
 
 document.addEventListener('click', function (e) {
+  var cid = e.target.getAttribute && e.target.getAttribute('data-case');
+  if (cid) { e.preventDefault(); toggleCase(e.target); return; }
+  var v = e.target.getAttribute && e.target.getAttribute('data-view');
+  if (v) { view = v; if (lastData) render(lastData); return; }
   if (e.target.id === 'newBtn') { $('cn').value = ''; $('dlg').showModal(); }
   var id = e.target.getAttribute && e.target.getAttribute('data-resend');
   if (id && confirm('Resend the pending-stage email for ' + id + '?')) {
@@ -242,6 +345,7 @@ document.addEventListener('click', function (e) {
   }
 });
 $('cancel').onclick = function () { $('dlg').close(); };
+document.addEventListener('input', function (e) { if (e.target.id === 'q' && lastData) { closedQuery = e.target.value; $('closedList').innerHTML = closedRows(lastData); restoreExpanded(); } });
 $('create').onclick = function () {
   var b = $('create'); b.disabled = true; b.textContent = 'Opening...';
   write({ action: 'newCase', customerName: $('cn').value, vertical: $('cv').value, caseType: $('ct').value })
