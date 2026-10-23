@@ -79,7 +79,7 @@
 
 <script>
 // ---- Fill these two in ----
-var SHEET_ID = 'https://docs.google.com/spreadsheets/d/1iRtljCvhJPqQS97tjYlGerh7adp54k4Wre0_Yj_SSnw/edit?gid=1864420434#gid=1864420434';     // the Tracker spreadsheet ID (shared: Anyone with the link, Viewer)
+var SHEET_ID = '1iRtljCvhJPqQS97tjYlGerh7adp54k4Wre0_Yj_SSnw';     // the Tracker spreadsheet ID (shared: Anyone with the link, Viewer)
 var WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbzMSnf7_El45BG7VITVkrTpqrfqNQ_A-XWZ5hZQtvrtpnovAzHTAwPg249CRkLqVchZ/exec';   // Apps Script web app URL ending in /exec (only needed for editing)
 // ---------------------------
 var POLL_MS = 30000, pin = sessionStorage.getItem('dscdaPin') || '', prev = {};
@@ -93,13 +93,50 @@ function toDate(v) {
   return m ? new Date(+m[1], +m[2], +m[3]) : null;
 }
 function fetchTracker() {
-  var url = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?tqx=out:json&headers=1&sheet=Tracker&range=A1:Q5000';
-  return fetch(url).then(function (r) { return r.text(); }).then(function (t) {
-    var i = t.indexOf('{'), j = t.lastIndexOf('}');
-    if (i < 0) throw new Error('Could not read the sheet. Share it as "Anyone with the link: Viewer".');
-    var table = JSON.parse(t.substring(i, j + 1)).table;
-    return table.rows.map(function (r) { return r.c.map(function (c) { return c ? c.v : null; }); });
-  });
+  var url = 'https://docs.google.com/spreadsheets/d/' +
+    SHEET_ID +
+    '/gviz/tq?tqx=out:json&headers=1&sheet=Tracker&range=A1:Q5000';
+
+  return fetch(url)
+    .then(function (response) {
+      if (!response.ok) {
+        throw new Error('Google Sheets returned HTTP ' + response.status);
+      }
+      return response.text();
+    })
+    .then(function (text) {
+      var start = text.indexOf('{');
+      var end = text.lastIndexOf('}');
+
+      if (start === -1 || end === -1 || end < start) {
+        throw new Error(
+          'Invalid Google Sheets response. Check spreadsheet sharing and the Tracker tab.'
+        );
+      }
+
+      var jsonText = text.substring(start, end + 1);
+      var result;
+
+      try {
+        result = JSON.parse(jsonText);
+      } catch (error) {
+        throw new Error(
+          'Google Sheets returned invalid JSON: ' + error.message
+        );
+      }
+
+      if (!result.table || !result.table.rows) {
+        throw new Error(
+          'No table data returned. Check that the Tracker tab exists and is accessible.'
+        );
+      }
+
+      return result.table.rows.map(function (row) {
+        return (row.c || []).map(function (cell) {
+          return cell ? cell.v : null;
+        });
+      });
+    });
 }
 // Columns by position (A..Q), same layout the scripts write.
 var C = { ID:0, NAME:1, VERT:2, TYPE:3, STAGE:4, STATUS:5, OPENED:6, MD_DATE:10, DECISION:11, FOLDER:12, MDO_SLA:13, ACC_SLA:14, CA_SLA:15, PRIORITY:16 };
