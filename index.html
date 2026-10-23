@@ -227,24 +227,27 @@ function overviewHtml(d) {
     h += '</div></details>';
   });
   h += '</div>';
-  h += '<div class="head"><h2>Open cases, oldest first</h2>' + (can ? '<button class="solid" id="newBtn">Open new case</button>' : '') + '</div><div class="card scroll">';
-  if (!d.cases.length) h += 'No open cases right now.';
-  else {
-    h += '<table><tr><th>Case ID</th><th>Customer</th><th>Vertical</th><th>Waiting on</th><th>Priority</th><th class="n">Days open</th><th></th></tr>';
-    d.cases.forEach(function (r) {
-      h += '<tr><td>' + caseLink(r.id) + '</td><td>' + esc(r.name) +
-        '</td><td>' + esc(r.vertical) + '</td><td>' + esc(r.stage) + '</td><td>' + (r.priority ? '<span class="pill ' + esc(r.priority) + '">' + esc(r.priority) + '</span>' : '') +
-        '</td><td class="n">' + esc(r.days) + '</td><td>' + (can ? '<button data-resend="' + esc(r.id) + '">Resend email</button>' : '') + '</td></tr>';
-    });
-    h += '</table>';
-  }
-  return h + '</div>';
+  return h;
 }
 
 var view = 'overview', lastData = null, closedQuery = '';
 function caseLink(id) { return '<a href="#" data-case="' + esc(id) + '">' + esc(id) + '</a>'; }
 function decCls(x) { return x === 'Approved' ? 'Approved' : x === 'Rejected' ? 'Rejected' : x ? 'cond' : ''; }
 function fmt(dt) { return dt ? dt.toLocaleDateString() : ''; }
+
+var openQuery = '';
+function openRows(d) {
+  var q = openQuery.toLowerCase(), can = unlocked();
+  var list = d.cases.filter(function (r) { return !q || (r.id + ' ' + r.name + ' ' + r.vertical + ' ' + r.stage + ' ' + r.priority).toLowerCase().indexOf(q) > -1; });
+  if (!list.length) return '<p class="none">' + (d.cases.length ? 'No open cases match.' : 'No open cases right now.') + '</p>';
+  var h = '<div class="scroll"><table><tr><th>Case ID</th><th>Customer</th><th>Vertical</th><th>Type</th><th>Waiting on</th><th>Priority</th><th class="n">Days open</th><th></th></tr>';
+  list.forEach(function (r) {
+    h += '<tr><td>' + caseLink(r.id) + '</td><td>' + esc(r.name) + '</td><td>' + esc(r.vertical) + '</td><td>' + esc((d.byId[r.id] || {}).type) + '</td><td>' + esc(r.stage) +
+      '</td><td>' + (r.priority ? '<span class="pill ' + esc(r.priority) + '">' + esc(r.priority) + '</span>' : '') + '</td><td class="n">' + esc(r.days) +
+      '</td><td>' + (can ? '<button data-resend="' + esc(r.id) + '">Resend email</button>' : '') + '</td></tr>';
+  });
+  return h + '</table></div>';
+}
 
 function closedRows(d) {
   var q = closedQuery.toLowerCase(), h = '';
@@ -262,8 +265,13 @@ function closedRows(d) {
 function render(d) {
   lastData = d;
   var h = '<div class="tabs"><button class="tab' + (view === 'overview' ? ' on' : '') + '" data-view="overview">Overview</button>' +
+          '<button class="tab' + (view === 'open' ? ' on' : '') + '" data-view="open">Open cases (' + d.cases.length + ')</button>' +
           '<button class="tab' + (view === 'closed' ? ' on' : '') + '" data-view="closed">Closed cases (' + d.closed.length + ')</button></div>';
-  if (view === 'closed') {
+  if (view === 'open') {
+    h += '<div class="head"><h2>Open cases, oldest first</h2>' + (unlocked() ? '<button class="solid" id="newBtn">Open new case</button>' : '') + '</div>' +
+         '<div class="card"><input class="search" id="qo" placeholder="Search case ID, customer, stage, priority..." value="' + esc(openQuery) + '">' +
+         '<div id="openList">' + openRows(d) + '</div></div>';
+  } else if (view === 'closed') {
     h += '<h2>All closed cases</h2><div class="card"><input class="search" id="q" placeholder="Search case ID, customer, decision..." value="' + esc(closedQuery) + '">' +
          '<div id="closedList">' + closedRows(d) + '</div></div>';
   } else h += overviewHtml(d);
@@ -345,7 +353,9 @@ document.addEventListener('click', function (e) {
   }
 });
 $('cancel').onclick = function () { $('dlg').close(); };
-document.addEventListener('input', function (e) { if (e.target.id === 'q' && lastData) { closedQuery = e.target.value; $('closedList').innerHTML = closedRows(lastData); restoreExpanded(); } });
+document.addEventListener('input', function (e) {
+  if (e.target.id === 'qo' && lastData) { openQuery = e.target.value; $('openList').innerHTML = openRows(lastData); restoreExpanded(); }
+  if (e.target.id === 'q' && lastData) { closedQuery = e.target.value; $('closedList').innerHTML = closedRows(lastData); restoreExpanded(); } });
 $('create').onclick = function () {
   var b = $('create'); b.disabled = true; b.textContent = 'Opening...';
   write({ action: 'newCase', customerName: $('cn').value, vertical: $('cv').value, caseType: $('ct').value })
