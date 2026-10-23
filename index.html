@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DSCDA Financial Health</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root { --navy:#14305f; --blue:#1d4fb8; --ink:#223253; --muted:#5d6f8d; --line:#dbe5f5; --card:rgba(255,255,255,.82);
+          --red:#f4c7c3; --amber:#fce8b2; --green:#d9ead3; }
+  * { box-sizing:border-box; }
+  body { margin:0; min-height:100vh; color:var(--ink); font:14px/1.5 Inter,system-ui,sans-serif;
+         background:linear-gradient(180deg,#d9e7fb 0%,#e9f0fc 45%,#f3f6fd 100%) fixed; }
+  .mono { font-family:"JetBrains Mono",ui-monospace,monospace; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); }
+  .wrap { max-width:1180px; margin:0 auto; padding:0 20px 48px; }
+  .bar { margin-top:0; background:#fff; border:1px solid var(--line); border-radius:0 0 18px 18px; padding:12px 18px;
+         display:flex; align-items:center; gap:16px; box-shadow:0 4px 18px rgba(20,48,95,.06); }
+  .logo { width:38px; height:38px; border-radius:9px; background:var(--navy); color:#fff; display:grid; place-items:center;
+          font:700 15px "Source Serif 4",serif; }
+  .brand b { display:block; font:700 16px "Source Serif 4",serif; color:var(--navy); line-height:1.1; }
+  .grow { flex:1; }
+  .who { border:1px solid var(--line); border-radius:12px; padding:5px 12px; text-align:right; line-height:1.2; }
+  .who b { font-size:13px; color:var(--navy); }
+  h1 { font:700 46px/1.1 "Source Serif 4",serif; color:var(--navy); margin:42px 0 8px; text-align:center; }
+  .sub { text-align:center; color:var(--muted); font-size:16px; margin:0 0 6px; }
+  .live { text-align:center; margin-bottom:34px; }
+  .live i { display:inline-block; width:8px; height:8px; border-radius:50%; background:#3f9b5f; margin-right:6px; }
+  .live.err i { background:#c0504d; }
+  h2 { font:600 22px "Source Serif 4",serif; color:var(--navy); margin:30px 0 12px; }
+  .grid { display:grid; gap:16px; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:20px; padding:20px 22px;
+          box-shadow:0 6px 24px rgba(20,48,95,.05); }
+  .big { font:600 40px/1.1 "Source Serif 4",serif; color:var(--navy); margin:6px 0 2px; font-variant-numeric:tabular-nums; }
+  .card.red { background:var(--red); } .card.amber { background:var(--amber); } .card.green { background:var(--green); }
+  table { width:100%; border-collapse:collapse; }
+  td, th { padding:8px 4px; text-align:left; border-top:1px solid var(--line); }
+  th { border-top:0; } td.n, th.n { text-align:right; font-variant-numeric:tabular-nums; font-weight:600; }
+  .scroll { overflow-x:auto; }
+  .pill { padding:2px 10px; border-radius:10px; font-size:12px; font-weight:500; }
+  .pill.High { background:var(--red); } .pill.Medium { background:var(--amber); } .pill.Low { background:var(--green); }
+  button { font:500 13px Inter,sans-serif; border-radius:10px; border:1px solid var(--blue); background:#fff; color:var(--blue); padding:6px 14px; cursor:pointer; }
+  button.solid { background:var(--blue); color:#fff; }
+  button:hover { filter:brightness(.95); } button:focus-visible, input:focus-visible, select:focus-visible { outline:2px solid var(--blue); outline-offset:2px; }
+  .head { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  .changed { animation:flash 1.8s ease-out; } @keyframes flash { from { background:var(--amber); } to { background:transparent; } }
+  #signin { text-align:center; padding:60px 0; } #signin .g { display:inline-block; margin-top:16px; }
+  dialog { border:1px solid var(--line); border-radius:20px; padding:24px; width:min(420px,92vw); }
+  dialog::backdrop { background:rgba(20,48,95,.35); }
+  label { display:block; margin:12px 0 4px; font-weight:500; } input, select { width:100%; padding:8px 10px; border:1px solid var(--line); border-radius:10px; font:inherit; }
+  .row { display:flex; gap:10px; justify-content:flex-end; margin-top:20px; }
+  #toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:var(--navy); color:#fff; padding:10px 18px; border-radius:12px; display:none; max-width:90vw; }
+  @media (prefers-reduced-motion:reduce) { .changed { animation:none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="bar">
+    <div class="logo">DC</div>
+    <div class="brand"><b>DSCDA</b><span class="mono">Digital operating system</span></div>
+    <div class="grow"></div>
+    <button id="unlock">Unlock editing</button>
+  </div>
+
+  <h1>Financial Health Check</h1>
+  <p class="sub">Every customer case, from first visit to final decision.</p>
+  <div class="live mono" id="live"><i></i><span id="liveText">Loading...</span></div>
+
+  <div id="app"></div>
+</div>
+
+<dialog id="dlg">
+  <h2 style="margin-top:0">Open a new case</h2>
+  <label for="cn">Customer name</label><input id="cn" autocomplete="off">
+  <label for="cv">Vertical</label><select id="cv"><option>Polymer</option><option>Textile</option></select>
+  <label for="ct">Case type</label><select id="ct"><option>NEW</option><option>ANNUAL</option><option>EXCEPTION</option></select>
+  <div class="row"><button id="cancel">Cancel</button><button class="solid" id="create">Open case</button></div>
+</dialog>
+<div id="toast" role="status"></div>
+
+<script>
+// ---- Fill these two in ----
+var SHEET_ID = 'https://docs.google.com/spreadsheets/d/1iRtljCvhJPqQS97tjYlGerh7adp54k4Wre0_Yj_SSnw/edit?gid=1864420434#gid=1864420434';     // the Tracker spreadsheet ID (shared: Anyone with the link, Viewer)
+var WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbzMSnf7_El45BG7VITVkrTpqrfqNQ_A-XWZ5hZQtvrtpnovAzHTAwPg249CRkLqVchZ/exec';   // Apps Script web app URL ending in /exec (only needed for editing)
+// ---------------------------
+var POLL_MS = 30000, pin = sessionStorage.getItem('dscdaPin') || '', prev = {};
+var $ = function (id) { return document.getElementById(id); };
+var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]; }); };
+
+// ---- READ: straight from the sheet, no server ----
+function toDate(v) {
+  if (v instanceof Date) return v;
+  var m = typeof v === 'string' && v.match(/^Date\((\d+),(\d+),(\d+)/);
+  return m ? new Date(+m[1], +m[2], +m[3]) : null;
+}
+function fetchTracker() {
+  var url = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?tqx=out:json&headers=1&sheet=Tracker&range=A1:Q5000';
+  return fetch(url).then(function (r) { return r.text(); }).then(function (t) {
+    var i = t.indexOf('{'), j = t.lastIndexOf('}');
+    if (i < 0) throw new Error('Could not read the sheet. Share it as "Anyone with the link: Viewer".');
+    var table = JSON.parse(t.substring(i, j + 1)).table;
+    return table.rows.map(function (r) { return r.c.map(function (c) { return c ? c.v : null; }); });
+  });
+}
+// Columns by position (A..Q), same layout the scripts write.
+var C = { ID:0, NAME:1, VERT:2, TYPE:3, STAGE:4, STATUS:5, OPENED:6, MD_DATE:10, DECISION:11, FOLDER:12, MDO_SLA:13, ACC_SLA:14, CA_SLA:15, PRIORITY:16 };
+function str(r, i) { return String(r[i] == null ? '' : r[i]).trim(); }
+
+function compute(all) {
+  var rows = all.filter(function (r) { return r[C.ID]; }), now = new Date(), ms = new Date(now.getFullYear(), now.getMonth(), 1);
+  var d = { updated: now.toLocaleTimeString(), kpi: { total: rows.length, open: 0, closed: 0, cm: 0, late: 0, high: 0, medium: 0, low: 0 },
+    pipeline: { MDO: 0, Accounts: 0, CA: 0, MD: 0 }, vertical: { Polymer: 0, Textile: 0 }, caseType: { NEW: 0, ANNUAL: 0, EXCEPTION: 0 },
+    sla: { MDO: { OK: 0, LATE: 0, Done: 0 }, Accounts: { OK: 0, LATE: 0, Done: 0 }, CA: { OK: 0, LATE: 0, Done: 0 } },
+    decisions: { 'Approved': 0, 'Approved with conditions': 0, 'Rejected': 0, 'Flagged for monitoring': 0 }, cases: [] };
+  var has = function (o, k) { return Object.prototype.hasOwnProperty.call(o, k); };
+  rows.forEach(function (r) {
+    var st = str(r, C.STATUS), pr = str(r, C.PRIORITY), s1 = str(r, C.MDO_SLA), s2 = str(r, C.ACC_SLA), s3 = str(r, C.CA_SLA);
+    if (st === 'Open') {
+      d.kpi.open++;
+      if (has(d.pipeline, str(r, C.STAGE))) d.pipeline[str(r, C.STAGE)]++;
+      if (has(d.vertical, str(r, C.VERT))) d.vertical[str(r, C.VERT)]++;
+      if (has(d.caseType, str(r, C.TYPE))) d.caseType[str(r, C.TYPE)]++;
+      if (pr === 'High') d.kpi.high++; else if (pr === 'Medium') d.kpi.medium++; else if (pr === 'Low') d.kpi.low++;
+      var o = toDate(r[C.OPENED]);
+      d.cases.push({ id: str(r, C.ID), name: str(r, C.NAME), vertical: str(r, C.VERT), stage: str(r, C.STAGE), priority: pr,
+        folder: str(r, C.FOLDER), t: o ? o.getTime() : Infinity, days: o ? Math.floor((now - o) / 86400000) : '' });
+    } else if (st === 'Closed') {
+      d.kpi.closed++;
+      if (has(d.decisions, str(r, C.DECISION))) d.decisions[str(r, C.DECISION)]++;
+      var md = toDate(r[C.MD_DATE]); if (md && md >= ms && md <= now) d.kpi.cm++;
+    }
+    if (s1 === 'LATE' || s2 === 'LATE' || s3 === 'LATE') d.kpi.late++;
+    if (has(d.sla.MDO, s1)) d.sla.MDO[s1]++; if (has(d.sla.Accounts, s2)) d.sla.Accounts[s2]++; if (has(d.sla.CA, s3)) d.sla.CA[s3]++;
+  });
+  d.cases.sort(function (a, b) { return a.t - b.t; });
+  return d;
+}
+
+// ---- WRITE: through Apps Script, with the passcode ----
+function write(payload) {
+  payload.pin = pin;
+  return fetch(WEBAPP_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) })
+    .then(function (r) { return r.json(); })
+    .then(function (j) { if (!j.ok) throw new Error(j.error); return j; });
+}
+function unlocked() { return !!pin; }
+function setUnlockLabel() { $('unlock').textContent = unlocked() ? 'Editing unlocked' : 'Unlock editing'; }
+$('unlock').onclick = function () {
+  if (unlocked()) { pin = ''; sessionStorage.removeItem('dscdaPin'); setUnlockLabel(); load(); return; }
+  var p = prompt('Enter the editing passcode'); if (!p) return;
+  pin = p;
+  write({ action: 'ping' }).then(function () { sessionStorage.setItem('dscdaPin', pin); toast('Editing unlocked.'); setUnlockLabel(); load(); })
+    .catch(function (e) { pin = ''; toast(e.message); });
+};
+
+function toast(m) { var t = $('toast'); t.textContent = m; t.style.display = 'block'; clearTimeout(t._h); t._h = setTimeout(function () { t.style.display = 'none'; }, 5000); }
+function live(t, err) { $('liveText').textContent = t; $('live').className = 'live mono' + (err ? ' err' : ''); }
+function num(k, v) { var c = prev.hasOwnProperty(k) && prev[k] !== v; prev[k] = v; return '<td class="n' + (c ? ' changed' : '') + '">' + esc(v) + '</td>'; }
+function list(title, o, p) {
+  var h = '<div class="card"><div class="mono">' + title + '</div><table>';
+  Object.keys(o).forEach(function (k) { h += '<tr><td>' + esc(k) + '</td>' + num(p + k, o[k]) + '</tr>'; });
+  return h + '</table></div>';
+}
+function stat(label, k, v, cls) {
+  var c = prev.hasOwnProperty(k) && prev[k] !== v; prev[k] = v;
+  return '<div class="card ' + (cls || '') + '"><div class="mono">' + label + '</div><div class="big' + (c ? ' changed' : '') + '">' + v + '</div></div>';
+}
+
+function render(d) {
+  var k = d.kpi, can = unlocked();
+  var h = '<h2>Snapshot</h2><div class="grid">' +
+    stat('Open cases', 'open', k.open) + stat('Closed this month', 'cm', k.cm) +
+    stat('Currently late', 'late', k.late, k.late > 0 ? 'red' : '') + stat('Total cases', 'tot', k.total) +
+    stat('Open, high priority', 'hi', k.high, 'red') + stat('Open, medium', 'me', k.medium, 'amber') + stat('Open, low', 'lo', k.low, 'green') + '</div>';
+  h += '<h2>Where open cases are waiting</h2><div class="grid">';
+  ['MDO', 'Accounts', 'CA', 'MD'].forEach(function (s) { h += stat(s, 'p' + s, d.pipeline[s]); });
+  h += '</div><div class="grid" style="margin-top:16px"><div class="card"><div class="mono">SLA health</div><table><tr><th></th><th class="n">On time</th><th class="n">Late</th><th class="n">Done</th></tr>';
+  ['MDO', 'Accounts', 'CA'].forEach(function (s) { var x = d.sla[s]; h += '<tr><td>' + s + '</td>' + num('so' + s, x.OK) + num('sl' + s, x.LATE) + num('sd' + s, x.Done) + '</tr>'; });
+  h += '</table></div>' + list('Open by vertical', d.vertical, 'v') + list('Open by case type', d.caseType, 'c') + list('Final decisions', d.decisions, 'd') + '</div>';
+  h += '<div class="head"><h2>Open cases, oldest first</h2>' + (can ? '<button class="solid" id="newBtn">Open new case</button>' : '') + '</div><div class="card scroll">';
+  if (!d.cases.length) h += 'No open cases right now.';
+  else {
+    h += '<table><tr><th>Case ID</th><th>Customer</th><th>Vertical</th><th>Waiting on</th><th>Priority</th><th class="n">Days open</th><th></th></tr>';
+    d.cases.forEach(function (r) {
+      h += '<tr><td>' + (can && r.folder ? '<a href="' + esc(r.folder) + '" target="_blank" rel="noopener">' + esc(r.id) + '</a>' : esc(r.id)) + '</td><td>' + esc(r.name) +
+        '</td><td>' + esc(r.vertical) + '</td><td>' + esc(r.stage) + '</td><td>' + (r.priority ? '<span class="pill ' + esc(r.priority) + '">' + esc(r.priority) + '</span>' : '') +
+        '</td><td class="n">' + esc(r.days) + '</td><td>' + (can ? '<button data-resend="' + esc(r.id) + '">Resend email</button>' : '') + '</td></tr>';
+    });
+    h += '</table>';
+  }
+  $('app').innerHTML = h + '</div>';
+  live('Updated ' + d.updated + '. Checks for changes every 30 seconds.', false);
+}
+
+function load() {
+  fetchTracker().then(function (rows) { render(compute(rows)); })
+    .catch(function (e) { live(e.message + ' Retrying.', true); });
+}
+
+document.addEventListener('click', function (e) {
+  if (e.target.id === 'newBtn') { $('cn').value = ''; $('dlg').showModal(); }
+  var id = e.target.getAttribute && e.target.getAttribute('data-resend');
+  if (id && confirm('Resend the pending-stage email for ' + id + '?')) {
+    e.target.disabled = true;
+    write({ action: 'resend', caseId: id }).then(function (j) { toast(j.message); }).catch(function (x) { toast(x.message); }).then(function () { e.target.disabled = false; });
+  }
+});
+$('cancel').onclick = function () { $('dlg').close(); };
+$('create').onclick = function () {
+  var b = $('create'); b.disabled = true; b.textContent = 'Opening...';
+  write({ action: 'newCase', customerName: $('cn').value, vertical: $('cv').value, caseType: $('ct').value })
+    .then(function (j) { $('dlg').close(); toast(j.message); setTimeout(load, 4000); })
+    .catch(function (x) { toast(x.message); })
+    .then(function () { b.disabled = false; b.textContent = 'Open case'; });
+};
+document.addEventListener('visibilitychange', function () { if (!document.hidden) load(); });
+
+setUnlockLabel();
+if (!SHEET_ID) { live('Set SHEET_ID at the top of index.html', true); }
+else { load(); setInterval(load, POLL_MS); }
+</script>
+</body>
+</html>
