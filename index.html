@@ -86,8 +86,8 @@
 
 <script>
 // ---- Fill these two in ----
-var SHEET_ID = '1iRtljCvhJPqQS97tjYlGerh7adp54k4Wre0_Yj_SSnw';     // the Tracker spreadsheet ID (shared: Anyone with the link, Viewer)
-var WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbzMSnf7_El45BG7VITVkrTpqrfqNQ_A-XWZ5hZQtvrtpnovAzHTAwPg249CRkLqVchZ/exec';   // Apps Script web app URL ending in /exec (only needed for editing)
+var SHEET_ID = '1iRtljCvhJPqQS97tjYlGerh7adp54k4Wre0_Yj_SSnw'; // the Tracker spreadsheet ID (shared: Anyone with the link, Viewer)
+var WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbzMSnf7_El45BG7VITVkrTpqrfqNQ_A-XWZ5hZQtvrtpnovAzHTAwPg249CRkLqVchZ/exec'; // Apps Script web app URL ending in /exec (only needed for editing)
 // ---------------------------
 var POLL_MS = 30000, pin = sessionStorage.getItem('dscdaPin') || '', prev = {};
 var $ = function (id) { return document.getElementById(id); };
@@ -100,7 +100,7 @@ function toDate(v) {
   return m ? new Date(+m[1], +m[2], +m[3], +(m[4] || 0), +(m[5] || 0), +(m[6] || 0)) : null;
 }
 function fetchTracker() {
-  var url = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?tqx=out:json&headers=1&sheet=Tracker&tq=' + encodeURIComponent('select A,B,C,D,E,F,G,K,L,M,N,O,P,Q,T,U');
+  var url = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?tqx=out:json&headers=1&sheet=Tracker&tq=' + encodeURIComponent('select A,B,C,D,E,F,G,K,L,M,N,O,P,Q,T,U,W');
   return fetch(url).then(function (r) { return r.text(); }).then(function (t) {
     var i = t.indexOf('{'), j = t.lastIndexOf('}');
     if (i < 0) throw new Error('Could not read the sheet. Share it as "Anyone with the link: Viewer".');
@@ -108,8 +108,8 @@ function fetchTracker() {
     return table.rows.map(function (r) { return r.c.map(function (c) { return c ? c.v : null; }); });
   });
 }
-// Positions within the columns selected above: A,B,C,D,E,F,G,K,L,M,N,O,P,Q,T,U
-var C = { ID:0, NAME:1, VERT:2, TYPE:3, STAGE:4, STATUS:5, OPENED:6, MD_DATE:7, DECISION:8, FOLDER:9, MDO_SLA:10, ACC_SLA:11, CA_SLA:12, PRIORITY:13, SR_FLAG:14, SR_DATE:15 };
+// Positions within the columns selected above: A,B,C,D,E,F,G,K,L,M,N,O,P,Q,T,U,W
+var C = { ID:0, NAME:1, VERT:2, TYPE:3, STAGE:4, STATUS:5, OPENED:6, MD_DATE:7, DECISION:8, FOLDER:9, MDO_SLA:10, ACC_SLA:11, CA_SLA:12, PRIORITY:13, SR_FLAG:14, SR_DATE:15, SR_SENT:16 };
 var SR_QUESTIONS = ['Key People Met & Designation', 'Facility & Operations', 'Current & Future Business Plan', 'Financials', 'Questions / Concerns Clarified', 'Red Flags', 'Recommendation', 'Comments'];
 
 // Reads one form-response tab; columns are found by header name. A missing tab can silently
@@ -134,7 +134,7 @@ function str(r, i) { return String(r[i] == null ? '' : r[i]).trim(); }
 function compute(all, second) {
   var rows = all.filter(function (r) { return r[C.ID]; }), now = new Date(), ms = new Date(now.getFullYear(), now.getMonth(), 1);
   var d = { updated: now.toLocaleTimeString(), kpi: { total: rows.length, open: 0, closed: 0, cm: 0, late: 0, high: 0, medium: 0, low: 0 },
-    pipeline: { MDO: 0, Accounts: 0, CA: 0, MD: 0 }, vertical: { Polymer: 0, Textile: 0 }, caseType: { NEW: 0, ANNUAL: 0, EXCEPTION: 0 },
+    pipeline: { MDO: 0, Accounts: 0, CA: 0, MD: 0, 'Second Review': 0 }, vertical: { Polymer: 0, Textile: 0 }, caseType: { NEW: 0, ANNUAL: 0, EXCEPTION: 0 },
     sla: { MDO: { OK: 0, LATE: 0, Done: 0 }, Accounts: { OK: 0, LATE: 0, Done: 0 }, CA: { OK: 0, LATE: 0, Done: 0 } },
     decisions: { 'Approved': 0, 'Approved with conditions': 0, 'Rejected': 0, 'Flagged for monitoring': 0 }, cases: [],
     sr: { awaiting: [], done: second || [] }, closed: [], byId: {} };
@@ -158,7 +158,7 @@ function compute(all, second) {
       if (has(d.decisions, str(r, C.DECISION))) d.decisions[str(r, C.DECISION)]++;
       var md = toDate(r[C.MD_DATE]); if (md && md >= ms && md <= now) d.kpi.cm++;
     }
-    if (str(r, C.SR_FLAG) === 'Yes' && !r[C.SR_DATE]) d.sr.awaiting.push({ id: str(r, C.ID), name: str(r, C.NAME), vertical: str(r, C.VERT), status: st, decision: str(r, C.DECISION) });
+    if (str(r, C.SR_FLAG) === 'Yes' && !r[C.SR_DATE]) d.sr.awaiting.push({ id: str(r, C.ID), name: str(r, C.NAME), vertical: str(r, C.VERT), status: st, decision: str(r, C.DECISION), sent: toDate(r[C.SR_SENT]) });
     if (s1 === 'LATE' || s2 === 'LATE' || s3 === 'LATE') d.kpi.late++;
     if (has(d.sla.MDO, s1)) d.sla.MDO[s1]++; if (has(d.sla.Accounts, s2)) d.sla.Accounts[s2]++; if (has(d.sla.CA, s3)) d.sla.CA[s3]++;
   });
@@ -204,17 +204,22 @@ function overviewHtml(d) {
     stat('Currently late', 'late', k.late, k.late > 0 ? 'red' : '') + stat('Total cases', 'tot', k.total) +
     stat('Open, high priority', 'hi', k.high, 'red') + stat('Open, medium', 'me', k.medium, 'amber') + stat('Open, low', 'lo', k.low, 'green') + '</div>';
   h += '<h2>Where open cases are waiting</h2><div class="grid">';
-  ['MDO', 'Accounts', 'CA', 'MD'].forEach(function (s) { h += stat(s, 'p' + s, d.pipeline[s]); });
+  ['MDO', 'Accounts', 'CA', 'MD', 'Second Review'].forEach(function (s) { h += stat(s, 'p' + s, d.pipeline[s]); });
   h += '</div><div class="grid" style="margin-top:16px"><div class="card"><div class="mono">SLA health</div><table><tr><th></th><th class="n">On time</th><th class="n">Late</th><th class="n">Done</th></tr>';
   ['MDO', 'Accounts', 'CA'].forEach(function (s) { var x = d.sla[s]; h += '<tr><td>' + s + '</td>' + num('so' + s, x.OK) + num('sl' + s, x.LATE) + num('sd' + s, x.Done) + '</tr>'; });
   h += '</table></div>' + list('Open by vertical', d.vertical, 'v') + list('Open by case type', d.caseType, 'c') + list('Final decisions', d.decisions, 'd') + '</div>';
   h += '<h2>Second reviews</h2><div class="grid">' + stat('Flagged, review not yet done', 'sra', d.sr.awaiting.length, d.sr.awaiting.length ? 'amber' : '') +
     stat('Second reviews completed', 'srd', d.sr.done.length, 'green') + '</div>';
-  h += '<div class="card" style="margin-top:16px"><div class="mono">Flagged by Accounts or the CA, no review submitted yet</div>';
+  var unsent = d.sr.awaiting.filter(function (r) { return !r.sent; }).length;
+  h += '<div class="card" style="margin-top:16px"><div class="head"><div class="mono">Flagged by Accounts or the CA, no review submitted yet' + (unsent ? '. ' + unsent + ' with no email sent' : '') + '</div>' +
+       (can ? '<button class="solid" data-srall="1">Find and send all missing emails</button>' : '') + '</div>';
   if (!d.sr.awaiting.length) h += '<p>None right now.</p>';
   else {
-    h += '<div class="scroll"><table><tr><th>Case ID</th><th>Customer</th><th>Vertical</th><th>Case status</th><th>Final decision</th></tr>';
-    d.sr.awaiting.forEach(function (r) { h += '<tr><td>' + caseLink(r.id) + '</td><td>' + esc(r.name) + '</td><td>' + esc(r.vertical) + '</td><td>' + esc(r.status) + '</td><td>' + esc(r.decision) + '</td></tr>'; });
+    h += '<div class="scroll"><table><tr><th>Case ID</th><th>Customer</th><th>Vertical</th><th>Case status</th><th>Final decision</th><th>Email to Sales and Accounts</th><th></th></tr>';
+    d.sr.awaiting.forEach(function (r) {
+      h += '<tr><td>' + caseLink(r.id) + '</td><td>' + esc(r.name) + '</td><td>' + esc(r.vertical) + '</td><td>' + esc(r.status) + '</td><td>' + esc(r.decision) + '</td><td>' +
+        (r.sent ? 'Sent ' + esc(r.sent.toLocaleDateString()) : '<span class="pill High">Not sent</span>') + '</td><td>' + (can ? '<button data-sr="' + esc(r.id) + '">' + (r.sent ? 'Send again' : 'Send now') + '</button>' : '') + '</td></tr>';
+    });
     h += '</table></div>';
   }
   h += '</div><div class="card" style="margin-top:16px"><div class="mono">Completed second reviews, newest first</div>';
@@ -346,6 +351,13 @@ document.addEventListener('click', function (e) {
   var v = e.target.getAttribute && e.target.getAttribute('data-view');
   if (v) { view = v; if (lastData) render(lastData); return; }
   if (e.target.id === 'newBtn') { $('cn').value = ''; $('dlg').showModal(); }
+  var sr = e.target.getAttribute && e.target.getAttribute('data-sr'), srAll = e.target.getAttribute && e.target.getAttribute('data-srall');
+  if ((sr && confirm('Email Sales and Accounts to request a Second Review for ' + sr + '?')) || (srAll && confirm('Find every case flagged for a Second Review that never got its email, and send them now?'))) {
+    e.target.disabled = true;
+    write(sr ? { action: 'sendSecondReview', caseId: sr } : { action: 'sendAllSecondReview' })
+      .then(function (j) { toast(j.message); setTimeout(load, 4000); }).catch(function (x) { toast(x.message); }).then(function () { e.target.disabled = false; });
+    return;
+  }
   var id = e.target.getAttribute && e.target.getAttribute('data-resend');
   if (id && confirm('Resend the pending-stage email for ' + id + '?')) {
     e.target.disabled = true;
