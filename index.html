@@ -6,75 +6,111 @@
 <title>DSCDA Financial Health</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
 <style>
-  :root { --navy:#14305f; --blue:#1d4fb8; --ink:#223253; --muted:#5d6f8d; --line:#dbe5f5; --card:rgba(255,255,255,.82);
-          --red:#f4c7c3; --amber:#fce8b2; --green:#d9ead3; }
+  :root { color-scheme:light; --bg1:#d9e7fb; --bg2:#e9f0fc; --bg3:#f3f6fd; --surface:#fff; --head:#14305f; --navy:#14305f; --blue:#1d4fb8; --ink:#223253; --muted:#5d6f8d;
+          --line:#dbe5f5; --card:rgba(255,255,255,.82); --detail:#f3f7fe; --red:#f4c7c3; --amber:#fce8b2; --green:#d9ead3; --overdue:rgba(244,199,195,.45);
+          --good:#3f9b5f; --bad:#c0504d; --shadow:rgba(20,48,95,.06); }
   * { box-sizing:border-box; }
   body { margin:0; min-height:100vh; color:var(--ink); font:14px/1.5 Inter,system-ui,sans-serif;
-         background:linear-gradient(180deg,#d9e7fb 0%,#e9f0fc 45%,#f3f6fd 100%) fixed; }
+         background:linear-gradient(180deg,var(--bg1) 0%,var(--bg2) 45%,var(--bg3) 100%) fixed; }
   .mono { font-family:"JetBrains Mono",ui-monospace,monospace; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); }
-  .wrap { max-width:1180px; margin:0 auto; padding:0 20px 48px; }
-  .bar { margin-top:0; background:#fff; border:1px solid var(--line); border-radius:0 0 18px 18px; padding:12px 18px;
-         display:flex; align-items:center; gap:16px; box-shadow:0 4px 18px rgba(20,48,95,.06); }
-  .logo { width:38px; height:38px; border-radius:9px; background:var(--navy); color:#fff; display:grid; place-items:center;
-          font:700 15px "Source Serif 4",serif; }
-  .brand b { display:block; font:700 16px "Source Serif 4",serif; color:var(--navy); line-height:1.1; }
+  .wrap { max-width:1180px; margin:0 auto; padding:0 20px 56px; }
+  .bar { position:sticky; top:0; z-index:30; background:var(--surface); border:1px solid var(--line); border-radius:0 0 18px 18px; padding:10px 18px;
+         display:flex; align-items:center; gap:12px; box-shadow:0 4px 18px var(--shadow); flex-wrap:wrap; }
+  .logo { width:38px; height:38px; border-radius:9px; background:var(--navy); color:#fff; display:grid; place-items:center; font:700 15px "Source Serif 4",serif; }
+  .brand b { display:block; font:700 16px "Source Serif 4",serif; color:var(--head); line-height:1.1; }
   .grow { flex:1; }
-  .who { border:1px solid var(--line); border-radius:12px; padding:5px 12px; text-align:right; line-height:1.2; }
-  .who b { font-size:13px; color:var(--navy); }
-  h1 { font:700 46px/1.1 "Source Serif 4",serif; color:var(--navy); margin:42px 0 8px; text-align:center; }
-  .sub { text-align:center; color:var(--muted); font-size:16px; margin:0 0 6px; }
-  .live { text-align:center; margin-bottom:34px; }
-  .live i { display:inline-block; width:8px; height:8px; border-radius:50%; background:#3f9b5f; margin-right:6px; }
-  .live.err i { background:#c0504d; }
-  h2 { font:600 22px "Source Serif 4",serif; color:var(--navy); margin:30px 0 12px; }
-  .grid { display:grid; gap:16px; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); }
-  .card { background:var(--card); border:1px solid var(--line); border-radius:20px; padding:20px 22px;
-          box-shadow:0 6px 24px rgba(20,48,95,.05); }
-  .big { font:600 40px/1.1 "Source Serif 4",serif; color:var(--navy); margin:6px 0 2px; font-variant-numeric:tabular-nums; }
+  .status { display:flex; align-items:center; gap:8px; color:var(--muted); font-size:12px; }
+  .status i { width:8px; height:8px; border-radius:50%; background:var(--good); display:inline-block; }
+  .status.err i { background:var(--bad); }
+  h1 { font:700 46px/1.1 "Source Serif 4",serif; color:var(--head); margin:42px 0 8px; text-align:center; }
+  .sub { text-align:center; color:var(--muted); font-size:16px; margin:0 0 34px; }
+  h2 { font:600 22px "Source Serif 4",serif; color:var(--head); margin:30px 0 12px; }
+  .grid { display:grid; gap:16px; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); }
+  .grid.wide { grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:20px; padding:20px 22px; box-shadow:0 6px 24px var(--shadow); }
+  .big { font:600 38px/1.1 "Source Serif 4",serif; color:var(--head); margin:6px 0 2px; font-variant-numeric:tabular-nums; }
   .card.red { background:var(--red); } .card.amber { background:var(--amber); } .card.green { background:var(--green); }
   table { width:100%; border-collapse:collapse; }
-  td, th { padding:8px 4px; text-align:left; border-top:1px solid var(--line); }
-  th { border-top:0; } td.n, th.n { text-align:right; font-variant-numeric:tabular-nums; font-weight:600; }
+  td, th { padding:8px 6px; text-align:left; border-top:1px solid var(--line); vertical-align:top; }
+  th { border-top:0; font-weight:600; white-space:nowrap; } td.n, th.n { text-align:right; font-variant-numeric:tabular-nums; font-weight:600; }
   .scroll { overflow-x:auto; }
-  .pill { padding:2px 10px; border-radius:10px; font-size:12px; font-weight:500; white-space:nowrap; }
-  .pill.High { background:var(--red); } .pill.Medium { background:var(--amber); } .pill.Low { background:var(--green); }
-  button { font:500 13px Inter,sans-serif; border-radius:10px; border:1px solid var(--blue); background:#fff; color:var(--blue); padding:6px 14px; cursor:pointer; }
-  button.solid { background:var(--blue); color:#fff; }
-  button:hover { filter:brightness(.95); } button:focus-visible, input:focus-visible, select:focus-visible { outline:2px solid var(--blue); outline-offset:2px; }
-  .head { display:flex; align-items:center; justify-content:space-between; gap:12px; }
-  .changed { animation:flash 1.8s ease-out; } @keyframes flash { from { background:var(--amber); } to { background:transparent; } }
-  #signin { text-align:center; padding:60px 0; } #signin .g { display:inline-block; margin-top:16px; }
-  dialog { border:1px solid var(--line); border-radius:20px; padding:24px; width:min(420px,92vw); }
-  dialog::backdrop { background:rgba(20,48,95,.35); }
-  label { display:block; margin:12px 0 4px; font-weight:500; } input, select { width:100%; padding:8px 10px; border:1px solid var(--line); border-radius:10px; font:inherit; }
-  .row { display:flex; gap:10px; justify-content:flex-end; margin-top:20px; }
-  #toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:var(--navy); color:#fff; padding:10px 18px; border-radius:12px; display:none; max-width:90vw; }
-  details { border-top:1px solid var(--line); padding:9px 0; } summary { cursor:pointer; } summary span { color:var(--muted); }
-  .ans { white-space:pre-wrap; margin:4px 0 12px; } .ans b { display:block; color:var(--navy); margin-top:10px; font-weight:600; }
-  .tabs { display:flex; gap:8px; margin:6px 0 0; } button.tab { border-radius:12px; padding:8px 18px; } button.tab.on { background:var(--navy); border-color:var(--navy); color:#fff; }
+  .pill { padding:2px 10px; border-radius:10px; font-size:12px; font-weight:500; white-space:nowrap; display:inline-block; }
+  .pill.High, .pill.bad { background:var(--red); } .pill.Medium, .pill.warn { background:var(--amber); } .pill.Low, .pill.ok { background:var(--green); }
   .pill.Approved { background:var(--green); } .pill.Rejected { background:var(--red); } .pill.cond { background:var(--amber); }
-  .detailBox h3 { font:600 17px "Source Serif 4",serif; color:var(--navy); margin:18px 0 2px; } .detailBox .meta, .none { color:var(--muted); } input.search { max-width:340px; margin:10px 0; }
-  tr.detailRow > td { background:#f3f7fe; padding:6px 18px 16px; border-top:0; }
-  tr.overdue > td { background:rgba(244,199,195,.45); }
+  button { font:500 13px Inter,sans-serif; border-radius:10px; border:1px solid var(--blue); background:var(--surface); color:var(--blue); padding:6px 14px; cursor:pointer; }
+  button.solid { background:var(--blue); color:#fff; }
+  button:hover { filter:brightness(.95); } button:disabled { opacity:.55; cursor:default; }
+  button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible { outline:2px solid var(--blue); outline-offset:2px; }
+  button.sortbtn { border:0; background:none; padding:0; color:inherit; font:inherit; font-weight:600; cursor:pointer; }
+  .head { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+  .changed { animation:flash 1.8s ease-out; } @keyframes flash { from { background:var(--amber); } to { background:transparent; } }
+  dialog { border:1px solid var(--line); border-radius:20px; padding:24px; width:min(420px,92vw); background:var(--surface); color:var(--ink); }
+  dialog::backdrop { background:rgba(20,48,95,.35); }
+  label { display:block; margin:12px 0 4px; font-weight:500; }
+  input, select { width:100%; padding:8px 10px; border:1px solid var(--line); border-radius:10px; font:inherit; background:var(--surface); color:var(--ink); }
+  .row { display:flex; gap:10px; justify-content:flex-end; margin-top:20px; }
+  #toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:var(--navy); color:#fff; padding:10px 18px; border-radius:12px; display:none; max-width:90vw; z-index:50; }
+  details { border-top:1px solid var(--line); padding:9px 0; } summary { cursor:pointer; } summary span { color:var(--muted); }
+  .ans { white-space:pre-wrap; margin:4px 0 12px; } .ans b { display:block; color:var(--head); margin-top:10px; font-weight:600; }
+  .tabs { display:flex; gap:8px; margin:6px 0 0; flex-wrap:wrap; } button.tab { border-radius:12px; padding:8px 18px; } button.tab.on { background:var(--navy); border-color:var(--navy); color:#fff; }
+  .detailBox h3 { font:600 17px "Source Serif 4",serif; color:var(--head); margin:18px 0 2px; } .detailBox .meta, .none { color:var(--muted); }
+  tr.detailRow > td { background:var(--detail); padding:6px 18px 16px; border-top:0; }
+  tr.overdue > td { background:var(--overdue); }
   .btns { display:flex; gap:6px; flex-wrap:wrap; }
   a { color:var(--blue); }
-  @media (prefers-reduced-motion:reduce) { .changed { animation:none; } }
+  /* filters */
+  .filters { display:flex; gap:10px; flex-wrap:wrap; align-items:end; margin:6px 0 12px; }
+  .filters > div { min-width:120px; } .filters label { margin:0 0 3px; font-size:12px; color:var(--muted); }
+  .filters input.search { min-width:220px; } .filters .chk { display:flex; align-items:center; gap:6px; padding-bottom:8px; } .filters .chk input { width:auto; } .filters .chk label { margin:0; }
+  /* charts */
+  .chart { width:100%; height:auto; } .chart text { fill:var(--muted); font:11px Inter,sans-serif; } .chart text.cv { fill:var(--ink); font-weight:600; }
+  .legend { display:flex; flex-wrap:wrap; gap:6px 14px; margin-top:8px; font-size:12px; } .legend i { display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:5px; }
+  .donutwrap { display:flex; align-items:center; gap:18px; flex-wrap:wrap; } .donutwrap svg { width:140px; height:140px; flex:none; }
+  /* timeline */
+  .tl { display:flex; gap:0; margin:12px 0 4px; overflow-x:auto; padding-bottom:6px; }
+  .tl-step { flex:1; min-width:96px; text-align:center; position:relative; padding-top:22px; font-size:12px; }
+  .tl-step::before { content:""; position:absolute; top:7px; left:-50%; width:100%; height:2px; background:var(--line); }
+  .tl-step:first-child::before { display:none; }
+  .tl-step .dot { position:absolute; top:0; left:50%; transform:translateX(-50%); width:16px; height:16px; border-radius:50%; background:var(--line); border:2px solid var(--surface); z-index:1; }
+  .tl-step.done::before, .tl-step.skipped::before, .tl-step.current::before { background:var(--good); }
+  .tl-step.done .dot { background:var(--good); } .tl-step.skipped .dot { background:var(--amber); border-color:var(--muted); } .tl-step.current .dot { background:var(--blue); box-shadow:0 0 0 4px var(--line); }
+  .tl-k { font-weight:600; color:var(--head); } .tl-d { color:var(--muted); } .tl-n { font-weight:600; }
+  /* skeleton */
+  .sk { height:90px; border-radius:20px; background:linear-gradient(90deg,var(--line),var(--card),var(--line)); background-size:200% 100%; animation:sk 1.4s infinite linear; }
+  @keyframes sk { from { background-position:200% 0; } to { background-position:-200% 0; } }
+  .attn-ok { display:flex; align-items:center; gap:12px; }
+  .attn-ok .tick { width:34px; height:34px; border-radius:50%; background:var(--good); color:#fff; display:grid; place-items:center; font-size:18px; }
+  .more { color:var(--muted); font-size:12px; margin-top:6px; }
+  @media (max-width:720px) {
+    h1 { font-size:28px; } .wrap { padding:0 12px 48px; } .big { font-size:30px; }
+    table.stack thead { display:none; }
+    table.stack, table.stack tbody, table.stack tr, table.stack td { display:block; width:100%; }
+    table.stack tr { border:1px solid var(--line); border-radius:14px; margin:0 0 10px; padding:6px 10px; background:var(--card); }
+    table.stack td { display:flex; justify-content:space-between; gap:12px; border-top:0; padding:4px 0; text-align:right; }
+    table.stack td::before { content:attr(data-label); color:var(--muted); font-weight:500; text-align:left; flex:none; }
+    table.stack td:empty { display:none; }
+    tr.detailRow { padding:0 !important; } tr.detailRow > td { display:block; text-align:left; } tr.detailRow > td::before { content:none; }
+    .btns { justify-content:flex-end; }
+  }
+  @media (prefers-reduced-motion:reduce) { .changed, .sk { animation:none; } }
+  @media print { .bar, .tabs, button { display:none !important; } body { background:#fff; } }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="bar">
-    <div class="logo">DC</div>
+  <div class="bar" role="banner">
+    <div class="logo" aria-hidden="true">DC</div>
     <div class="brand"><b>DSCDA</b><span class="mono">Digital operating system</span></div>
     <div class="grow"></div>
+    <div class="status" id="status"><i></i><span id="liveText">Loading...</span></div>
+    <button id="refresh" aria-label="Refresh data">Refresh</button>
     <button id="unlock">Unlock editing</button>
   </div>
 
   <h1>Financial Health Check</h1>
   <p class="sub">Every customer case, from first visit to final decision.</p>
-  <div class="live mono" id="live"><i></i><span id="liveText">Loading...</span></div>
 
-  <div id="app"></div>
+  <main id="app"><div class="grid"><div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div></div></main>
 </div>
 
 <dialog id="dlg">
@@ -84,7 +120,7 @@
   <label for="ct">Case type</label><select id="ct"><option>NEW</option><option>ANNUAL</option><option>EXCEPTION</option></select>
   <div class="row"><button id="cancel">Cancel</button><button class="solid" id="create">Open case</button></div>
 </dialog>
-<div id="toast" role="status"></div>
+<div id="toast" role="status" aria-live="polite"></div>
 
 <script>
 // ---- Fill these two in ----
@@ -101,10 +137,11 @@ function toDate(v) {
   var m = typeof v === 'string' && v.match(/^Date\((\d+),(\d+),(\d+)(?:,(\d+),(\d+),(\d+))?/);
   return m ? new Date(+m[1], +m[2], +m[3], +(m[4] || 0), +(m[5] || 0), +(m[6] || 0)) : null;
 }
-// Full query includes the Second Review tracking columns (X Status, Y Due, AA Owner, AB Mail status) and AD (Skipped stages).
+// Full query = base columns + Second Review tracking (X,Y,AA,AB) + Skipped stages (AD) + stage dates (H,I,J) + Decision history (AC).
 // If the Tracker has not been upgraded yet (run "Set up Tracker structure"), fall back to the older column set.
-var Q_FULL = 'select A,B,C,D,E,F,G,K,L,M,N,O,P,Q,T,U,W,X,Y,AA,AB,AD';
+var Q_FULL = 'select A,B,C,D,E,F,G,K,L,M,N,O,P,Q,T,U,W,X,Y,AA,AB,AD,H,I,J,AC';
 var Q_BASIC = 'select A,B,C,D,E,F,G,K,L,M,N,O,P,Q,T,U,W';
+var ROW_LEN = 26;
 function runTrackerQuery(q) {
   var url = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?tqx=out:json&headers=1&sheet=Tracker&tq=' + encodeURIComponent(q);
   return fetch(url).then(function (r) { return r.text(); }).then(function (t) {
@@ -114,7 +151,7 @@ function runTrackerQuery(q) {
     if (!parsed.table) throw new Error('query');
     return parsed.table.rows.map(function (r) {
       var row = r.c.map(function (c) { return c ? c.v : null; });
-      while (row.length < 22) row.push(null);
+      while (row.length < ROW_LEN) row.push(null);
       return row;
     });
   });
@@ -125,10 +162,11 @@ function fetchTracker() {
     return runTrackerQuery(Q_BASIC);
   });
 }
-// Positions within the columns selected above: A,B,C,D,E,F,G,K,L,M,N,O,P,Q,T,U,W,X,Y,AA,AB,AD
+// Positions within the columns selected above
 var C = { ID:0, NAME:1, VERT:2, TYPE:3, STAGE:4, STATUS:5, OPENED:6, MD_DATE:7, DECISION:8, FOLDER:9, MDO_SLA:10, ACC_SLA:11, CA_SLA:12, PRIORITY:13,
-          SR_FLAG:14, SR_DATE:15, SR_SENT:16, SR_STATUS:17, SR_DUE:18, SR_OWNER:19, SR_MAIL:20, SKIPPED:21 };
+          SR_FLAG:14, SR_DATE:15, SR_SENT:16, SR_STATUS:17, SR_DUE:18, SR_OWNER:19, SR_MAIL:20, SKIPPED:21, MDO_DATE:22, ACC_DATE:23, CA_DATE:24, HISTORY:25 };
 var SR_QUESTIONS = ['Visit conducted by', 'Key People Met & Designation', 'Facility & Operations', 'Current & Future Business Plan', 'Financials', 'Questions / Concerns Clarified', 'Red Flags', 'Recommendation', 'Comments', 'Independent check done by (name & what was checked)'];
+var STAGES = ['MDO', 'Accounts', 'CA', 'MD'];
 
 // Reads one form-response tab; columns are found by header name. A missing tab can silently
 // return a different sheet, so each tab must contain its own known question (plus Timestamp).
@@ -148,6 +186,7 @@ function fetchSecond() {
   return fetchFormTab('Form5_SecondReview', 'Key People Met & Designation').then(function (f) { return f.rows.slice().reverse(); });
 }
 function str(r, i) { return String(r[i] == null ? '' : r[i]).trim(); }
+function dayDiff(a, b) { return Math.max(0, Math.floor((a - b) / 86400000)); }
 
 function compute(all, second) {
   var rows = all.filter(function (r) { return r[C.ID]; }), now = new Date(), ms = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -155,43 +194,72 @@ function compute(all, second) {
     pipeline: { MDO: 0, Accounts: 0, CA: 0, MD: 0, 'Second Review': 0 }, vertical: { Polymer: 0, Textile: 0 }, caseType: { NEW: 0, ANNUAL: 0, EXCEPTION: 0 },
     sla: { MDO: { OK: 0, LATE: 0, Done: 0 }, Accounts: { OK: 0, LATE: 0, Done: 0 }, CA: { OK: 0, LATE: 0, Done: 0 } },
     decisions: { 'Approved': 0, 'Approved with conditions': 0, 'Rejected': 0, 'Flagged for monitoring': 0 }, cases: [],
-    sr: { awaiting: [], reconfirm: [], overdue: 0, done: second || [] }, closed: [], byId: {} };
+    sr: { awaiting: [], reconfirm: [], overdue: 0, done: second || [] }, closed: [], byId: {},
+    attn: { overdue: [], late: [], mdWaiting: [], mail: [], reconfirm: [], noOwner: [] },
+    months: [], stageDays: { MDO: [], Accounts: [], CA: [], MD: [] } };
   var has = function (o, k) { return Object.prototype.hasOwnProperty.call(o, k); };
+  var monthKey = function (dt) { return dt.getFullYear() * 12 + dt.getMonth(); };
+  var opened = {}, closedM = {};
+
   rows.forEach(function (r) {
+    var skipped = str(r, C.SKIPPED);
     var info = { id: str(r, C.ID), name: str(r, C.NAME), vertical: str(r, C.VERT), type: str(r, C.TYPE), stage: str(r, C.STAGE), status: str(r, C.STATUS),
       priority: str(r, C.PRIORITY), decision: str(r, C.DECISION), folder: str(r, C.FOLDER), opened: toDate(r[C.OPENED]), closedOn: toDate(r[C.MD_DATE]),
-      skipped: str(r, C.SKIPPED) };
+      skipped: skipped, mdoDate: toDate(r[C.MDO_DATE]), accDate: toDate(r[C.ACC_DATE]), caDate: toDate(r[C.CA_DATE]), mdDate: toDate(r[C.MD_DATE]),
+      srStatus: str(r, C.SR_STATUS), srDue: toDate(r[C.SR_DUE]), srOwner: str(r, C.SR_OWNER), history: str(r, C.HISTORY), days: '' , lateFlags: [] };
+    if (info.opened && info.closedOn) info.days = dayDiff(info.closedOn, info.opened);
+    var st = info.status, pr = info.priority, s1 = str(r, C.MDO_SLA), s2 = str(r, C.ACC_SLA), s3 = str(r, C.CA_SLA);
+    if (s1 === 'LATE') info.lateFlags.push('MDO'); if (s2 === 'LATE') info.lateFlags.push('Accounts'); if (s3 === 'LATE') info.lateFlags.push('CA');
     d.byId[info.id] = info;
-    var st = str(r, C.STATUS), pr = str(r, C.PRIORITY), s1 = str(r, C.MDO_SLA), s2 = str(r, C.ACC_SLA), s3 = str(r, C.CA_SLA);
+
+    if (info.opened) { var ok = monthKey(info.opened); opened[ok] = (opened[ok] || 0) + 1; }
+    if (info.closedOn && st === 'Closed') { var ck = monthKey(info.closedOn); closedM[ck] = (closedM[ck] || 0) + 1; }
+    // time spent per stage (skipped stages excluded)
+    var seg = [['MDO', info.opened, info.mdoDate, false], ['Accounts', info.mdoDate, info.accDate, /SKIPPED Accounts/.test(skipped)],
+               ['CA', info.accDate, info.caDate, /SKIPPED CA/.test(skipped)], ['MD', info.caDate, info.mdDate, false]];
+    seg.forEach(function (s) { if (s[1] && s[2] && !s[3]) d.stageDays[s[0]].push(dayDiff(s[2], s[1])); });
+
     if (st === 'Open') {
       d.kpi.open++;
-      if (has(d.pipeline, str(r, C.STAGE))) d.pipeline[str(r, C.STAGE)]++;
-      if (has(d.vertical, str(r, C.VERT))) d.vertical[str(r, C.VERT)]++;
-      if (has(d.caseType, str(r, C.TYPE))) d.caseType[str(r, C.TYPE)]++;
+      if (has(d.pipeline, info.stage)) d.pipeline[info.stage]++;
+      if (has(d.vertical, info.vertical)) d.vertical[info.vertical]++;
+      if (has(d.caseType, info.type)) d.caseType[info.type]++;
       if (pr === 'High') d.kpi.high++; else if (pr === 'Medium') d.kpi.medium++; else if (pr === 'Low') d.kpi.low++;
-      var o = toDate(r[C.OPENED]);
-      d.cases.push({ id: str(r, C.ID), name: str(r, C.NAME), vertical: str(r, C.VERT), stage: str(r, C.STAGE), priority: pr,
-        folder: str(r, C.FOLDER), t: o ? o.getTime() : Infinity, days: o ? Math.floor((now - o) / 86400000) : '' });
+      var o = info.opened;
+      d.cases.push({ id: info.id, name: info.name, vertical: info.vertical, type: info.type, stage: info.stage, priority: pr,
+        folder: info.folder, t: o ? o.getTime() : Infinity, days: o ? Math.floor((now - o) / 86400000) : '', lateFlags: info.lateFlags });
+      if (info.lateFlags.length) d.attn.late.push({ id: info.id, name: info.name, text: 'Late at ' + info.lateFlags.join(', '), days: o ? Math.floor((now - o) / 86400000) : 0 });
+      if (info.stage === 'MD') {
+        var since = info.caDate || info.accDate || info.opened;
+        d.attn.mdWaiting.push({ id: info.id, name: info.name, text: since ? dayDiff(now, since) + ' days waiting' : 'Waiting', days: since ? dayDiff(now, since) : 0 });
+      }
     } else if (st === 'Closed') {
       d.kpi.closed++; d.closed.push(info);
-      if (has(d.decisions, str(r, C.DECISION))) d.decisions[str(r, C.DECISION)]++;
-      var md = toDate(r[C.MD_DATE]); if (md && md >= ms && md <= now) d.kpi.cm++;
+      if (has(d.decisions, info.decision)) d.decisions[info.decision]++;
+      var md = info.closedOn; if (md && md >= ms && md <= now) d.kpi.cm++;
     }
 
-    // ---- Second Review (runs alongside the main flow, so it counts open AND closed cases) ----
-    var srs = str(r, C.SR_STATUS), flagYes = str(r, C.SR_FLAG) === 'Yes', due = toDate(r[C.SR_DUE]);
+    // ---- Second Review (parallel to the main flow, so open AND closed cases count) ----
+    var srs = info.srStatus, flagYes = str(r, C.SR_FLAG) === 'Yes', due = info.srDue;
     var pending = srs === 'Mail pending' || srs === 'Pending visit';
     var notRequested = !srs && flagYes && !r[C.SR_DATE];
     if (pending) d.pipeline['Second Review']++;
     if (pending || notRequested) {
       var overdue = !!(pending && due && due < now);
       if (overdue) d.sr.overdue++;
-      d.sr.awaiting.push({ id: str(r, C.ID), name: str(r, C.NAME), vertical: str(r, C.VERT), status: st, decision: str(r, C.DECISION),
-        label: notRequested ? 'Flagged, not requested' : srs, due: due, owner: str(r, C.SR_OWNER), mail: str(r, C.SR_MAIL),
-        sent: toDate(r[C.SR_SENT]), notSent: notRequested || srs === 'Mail pending', overdue: overdue });
+      var mail = str(r, C.SR_MAIL);
+      var row = { id: info.id, name: info.name, vertical: info.vertical, status: st, decision: info.decision,
+        label: notRequested ? 'Flagged, not requested' : srs, due: due, owner: info.srOwner, mail: mail,
+        sent: toDate(r[C.SR_SENT]), notSent: notRequested || srs === 'Mail pending', overdue: overdue };
+      d.sr.awaiting.push(row);
+      if (overdue) d.attn.overdue.push({ id: info.id, name: info.name, text: 'Due ' + (due ? due.toLocaleDateString() : '') + (info.srOwner ? '. ' + info.srOwner : '. No owner'), days: dayDiff(now, due) });
+      if (/^FAILED/.test(mail) || /^PARTIAL/.test(mail) || row.notSent) d.attn.mail.push({ id: info.id, name: info.name, text: /^FAILED/.test(mail) ? 'Email failed' : /^PARTIAL/.test(mail) ? 'Partly delivered' : 'Email not sent', days: 0 });
+      if (srs === 'Pending visit' && !info.srOwner) d.attn.noOwner.push({ id: info.id, name: info.name, text: 'Visit pending, nobody assigned', days: 0 });
     }
     if (/^Review done - MD to reconfirm/.test(srs)) {
-      d.sr.reconfirm.push({ id: str(r, C.ID), name: str(r, C.NAME), vertical: str(r, C.VERT), decision: str(r, C.DECISION) });
+      var rc = { id: info.id, name: info.name, vertical: info.vertical, decision: info.decision };
+      d.sr.reconfirm.push(rc);
+      d.attn.reconfirm.push({ id: info.id, name: info.name, text: 'Decision: ' + (info.decision || 'none'), days: 0 });
     }
 
     if (s1 === 'LATE' || s2 === 'LATE' || s3 === 'LATE') d.kpi.late++;
@@ -200,6 +268,12 @@ function compute(all, second) {
   d.cases.sort(function (a, b) { return a.t - b.t; });
   d.closed.sort(function (a, b) { return (b.closedOn ? b.closedOn.getTime() : 0) - (a.closedOn ? a.closedOn.getTime() : 0); });
   d.sr.awaiting.sort(function (a, b) { return (b.overdue ? 1 : 0) - (a.overdue ? 1 : 0) || (b.notSent ? 1 : 0) - (a.notSent ? 1 : 0); });
+  ['overdue', 'late', 'mdWaiting'].forEach(function (k) { d.attn[k].sort(function (a, b) { return b.days - a.days; }); });
+
+  // last 6 months, opened vs closed
+  var base = now.getFullYear() * 12 + now.getMonth();
+  var names = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  for (var i = 5; i >= 0; i--) { var k = base - i; d.months.push({ label: names[k % 12], opened: opened[k] || 0, closed: closedM[k] || 0 }); }
   return d;
 }
 
@@ -219,9 +293,10 @@ $('unlock').onclick = function () {
   write({ action: 'ping' }).then(function () { sessionStorage.setItem('dscdaPin', pin); toast('Editing unlocked.'); setUnlockLabel(); load(); })
     .catch(function (e) { pin = ''; toast(e.message); });
 };
+$('refresh').onclick = function () { load(true); };
 
 function toast(m) { var t = $('toast'); t.textContent = m; t.style.display = 'block'; clearTimeout(t._h); t._h = setTimeout(function () { t.style.display = 'none'; }, 6000); }
-function live(t, err) { $('liveText').textContent = t; $('live').className = 'live mono' + (err ? ' err' : ''); }
+function live(t, err) { $('liveText').textContent = t; $('status').className = 'status' + (err ? ' err' : ''); }
 function num(k, v) { var c = prev.hasOwnProperty(k) && prev[k] !== v; prev[k] = v; return '<td class="n' + (c ? ' changed' : '') + '">' + esc(v) + '</td>'; }
 function list(title, o, p) {
   var h = '<div class="card"><div class="mono">' + title + '</div><table>';
@@ -233,25 +308,132 @@ function stat(label, k, v, cls) {
   return '<div class="card ' + (cls || '') + '"><div class="mono">' + label + '</div><div class="big' + (c ? ' changed' : '') + '">' + v + '</div></div>';
 }
 
+// ---- helpers for display ----
+function rel(dt) {
+  if (!dt) return '';
+  var diff = dt - new Date(), abs = Math.abs(diff), m = Math.round(abs / 60000), h = Math.round(abs / 3600000), dd = Math.round(abs / 86400000), t;
+  if (abs < 120000) t = 'just now';
+  else if (m < 60) t = m + ' min'; else if (h < 24) t = h + ' h'; else if (dd < 45) t = dd + ' d'; else t = null;
+  var text = t === null ? dt.toLocaleDateString() : (t === 'just now' ? t : (diff < 0 ? t + ' ago' : 'in ' + t));
+  return '<span title="' + esc(dt.toLocaleString()) + '">' + esc(text) + '</span>';
+}
+function fmt(dt) { return dt ? dt.toLocaleDateString() : ''; }
+function caseLink(id) { return '<a href="#" data-case="' + esc(id) + '">' + esc(id) + '</a>'; }
+function decCls(x) { return x === 'Approved' ? 'Approved' : x === 'Rejected' ? 'Rejected' : x ? 'cond' : ''; }
 function mailCell(r) {
-  if (/^FAILED/.test(r.mail)) return '<span class="pill High" title="' + esc(r.mail) + '">Failed, will retry</span>';
-  if (r.notSent) return '<span class="pill High">Not sent</span>';
-  if (/^PARTIAL/.test(r.mail)) return '<span class="pill Medium" title="' + esc(r.mail) + '">Partly delivered</span>';
-  return r.sent ? 'Sent ' + esc(r.sent.toLocaleDateString()) : 'Sent';
+  if (/^FAILED/.test(r.mail)) return '<span class="pill bad" title="' + esc(r.mail) + '">Failed, will retry</span>';
+  if (r.notSent) return '<span class="pill bad">Not sent</span>';
+  if (/^PARTIAL/.test(r.mail)) return '<span class="pill warn" title="' + esc(r.mail) + '">Partly delivered</span>';
+  return r.sent ? 'Sent ' + rel(r.sent) : 'Sent';
+}
+
+// ---- charts (plain SVG, no libraries) ----
+function barChart(items, label) {
+  var W = 340, H = 180, L = 10, B = 34, T = 18, n = items.length, max = 1;
+  items.forEach(function (i) { if (i.value > max) max = i.value; });
+  var slot = (W - L * 2) / n, bw = Math.min(46, slot - 16);
+  var s = '<svg viewBox="0 0 ' + W + ' ' + H + '" class="chart" role="img" aria-label="' + esc(label) + '">';
+  items.forEach(function (it, i) {
+    var bh = Math.round((H - B - T) * it.value / max), x = L + slot * i + (slot - bw) / 2, y = H - B - bh;
+    s += '<rect x="' + x + '" y="' + y + '" width="' + bw + '" height="' + Math.max(bh, 1) + '" rx="5" fill="' + (it.color || 'var(--blue)') + '"/>';
+    s += '<text x="' + (x + bw / 2) + '" y="' + (y - 5) + '" text-anchor="middle" class="cv">' + it.value + '</text>';
+    s += '<text x="' + (x + bw / 2) + '" y="' + (H - 14) + '" text-anchor="middle">' + esc(it.label) + '</text>';
+  });
+  return s + '</svg>';
+}
+function donut(items, label) {
+  var tot = 0; items.forEach(function (i) { tot += i.value; });
+  if (!tot) return '<p class="none">No final decisions yet.</p>';
+  var R = 62, r = 38, cx = 70, cy = 70, a0 = -Math.PI / 2, s = '<div class="donutwrap"><svg viewBox="0 0 140 140" role="img" aria-label="' + esc(label) + '">';
+  var pt = function (rad, a) { return (cx + rad * Math.cos(a)).toFixed(2) + ' ' + (cy + rad * Math.sin(a)).toFixed(2); };
+  items.forEach(function (it) {
+    if (!it.value) return;
+    if (it.value === tot) { s += '<circle cx="' + cx + '" cy="' + cy + '" r="' + ((R + r) / 2) + '" fill="none" stroke="' + it.color + '" stroke-width="' + (R - r) + '"/>'; return; }
+    var a1 = a0 + 2 * Math.PI * it.value / tot, large = (a1 - a0) > Math.PI ? 1 : 0;
+    s += '<path d="M' + pt(R, a0) + ' A' + R + ' ' + R + ' 0 ' + large + ' 1 ' + pt(R, a1) + ' L' + pt(r, a1) + ' A' + r + ' ' + r + ' 0 ' + large + ' 0 ' + pt(r, a0) + ' Z" fill="' + it.color + '"/>';
+    a0 = a1;
+  });
+  s += '<text x="70" y="75" text-anchor="middle" class="cv" style="font-size:20px">' + tot + '</text></svg><div class="legend" style="flex-direction:column">';
+  items.forEach(function (it) { s += '<span><i style="background:' + it.color + '"></i>' + esc(it.label) + ': <b>' + it.value + '</b></span>'; });
+  return s + '</div></div>';
+}
+function monthChart(months) {
+  var W = 340, H = 180, B = 34, T = 18, max = 1;
+  months.forEach(function (m) { max = Math.max(max, m.opened, m.closed); });
+  var slot = (W - 20) / months.length, bw = Math.min(18, slot / 2 - 3);
+  var s = '<svg viewBox="0 0 ' + W + ' ' + H + '" class="chart" role="img" aria-label="Cases opened and closed per month">';
+  months.forEach(function (m, i) {
+    var x0 = 10 + slot * i + (slot - bw * 2 - 4) / 2;
+    [['opened', 'var(--blue)', 0], ['closed', 'var(--good)', bw + 4]].forEach(function (b) {
+      var v = m[b[0]], bh = Math.round((H - B - T) * v / max), x = x0 + b[2], y = H - B - bh;
+      s += '<rect x="' + x + '" y="' + y + '" width="' + bw + '" height="' + Math.max(bh, 1) + '" rx="4" fill="' + b[1] + '"/>';
+      if (v) s += '<text x="' + (x + bw / 2) + '" y="' + (y - 4) + '" text-anchor="middle" class="cv">' + v + '</text>';
+    });
+    s += '<text x="' + (x0 + bw + 2) + '" y="' + (H - 14) + '" text-anchor="middle">' + esc(m.label) + '</text>';
+  });
+  return s + '</svg><div class="legend"><span><i style="background:var(--blue)"></i>Opened</span><span><i style="background:var(--good)"></i>Closed</span></div>';
+}
+function hbars(items, label) {
+  var max = 1; items.forEach(function (i) { if (i.value > max) max = i.value; });
+  var W = 340, rowH = 34, H = items.length * rowH + 8, lw = 70;
+  var s = '<svg viewBox="0 0 ' + W + ' ' + H + '" class="chart" role="img" aria-label="' + esc(label) + '">';
+  items.forEach(function (it, i) {
+    var y = 6 + i * rowH, w = Math.round((W - lw - 50) * it.value / max);
+    s += '<text x="0" y="' + (y + 17) + '">' + esc(it.label) + '</text>';
+    s += '<rect x="' + lw + '" y="' + y + '" width="' + Math.max(w, 2) + '" height="22" rx="5" fill="var(--blue)"/>';
+    s += '<text x="' + (lw + Math.max(w, 2) + 6) + '" y="' + (y + 16) + '" class="cv">' + (it.n ? it.value + ' d' : '-') + '</text>';
+  });
+  return s + '</svg>';
+}
+function avg(a) { if (!a.length) return 0; var t = 0; a.forEach(function (x) { t += x; }); return Math.round(t / a.length * 10) / 10; }
+
+function chartsHtml(d) {
+  var stageItems = ['MDO', 'Accounts', 'CA', 'MD'].map(function (s) { return { label: s, value: d.pipeline[s] }; });
+  var decItems = [{ label: 'Approved', value: d.decisions['Approved'], color: 'var(--good)' },
+                  { label: 'With conditions', value: d.decisions['Approved with conditions'], color: 'var(--amber)' },
+                  { label: 'Rejected', value: d.decisions['Rejected'], color: 'var(--bad)' },
+                  { label: 'Monitoring', value: d.decisions['Flagged for monitoring'], color: 'var(--muted)' }];
+  var durItems = STAGES.map(function (s) { return { label: s, value: avg(d.stageDays[s]), n: d.stageDays[s].length }; });
+  return '<h2>Insights</h2><div class="grid wide">' +
+    '<div class="card"><div class="mono">Open cases by stage</div>' + barChart(stageItems, 'Open cases by stage') + '</div>' +
+    '<div class="card"><div class="mono">Final decisions</div>' + donut(decItems, 'Final decisions') + '</div>' +
+    '<div class="card"><div class="mono">Opened vs closed, last 6 months</div>' + monthChart(d.months) + '</div>' +
+    '<div class="card"><div class="mono">Average days spent per stage</div>' + hbars(durItems, 'Average days per stage') + '<div class="more">Based on cases with recorded dates; skipped stages are excluded.</div></div></div>';
+}
+
+// ---- needs-attention panel ----
+function attnGroup(title, cls, items) {
+  if (!items.length) return '';
+  var h = '<div class="card ' + cls + '"><div class="head"><div class="mono">' + title + '</div><span class="pill ' + (cls === 'red' ? 'bad' : 'warn') + '">' + items.length + '</span></div><table>';
+  items.slice(0, 5).forEach(function (r) { h += '<tr><td>' + caseLink(r.id) + '</td><td>' + esc(r.name) + '</td><td>' + esc(r.text) + '</td></tr>'; });
+  h += '</table>';
+  if (items.length > 5) h += '<div class="more">+ ' + (items.length - 5) + ' more</div>';
+  return h + '</div>';
+}
+function attnTotal(d) { var a = d.attn; return a.overdue.length + a.late.length + a.mdWaiting.length + a.mail.length + a.reconfirm.length + a.noOwner.length; }
+function attnHtml(d) {
+  var a = d.attn, g = attnGroup('Overdue second-review visits', 'red', a.overdue) + attnGroup('Past SLA', 'red', a.late) +
+    attnGroup('Email problems', 'red', a.mail) + attnGroup('Waiting for MD decision', 'amber', a.mdWaiting) +
+    attnGroup('MD to reconfirm after second review', 'amber', a.reconfirm) + attnGroup('Visit owner not assigned', 'amber', a.noOwner);
+  var h = '<h2>Needs attention</h2>';
+  if (!g) return h + '<div class="card green attn-ok"><div class="tick" aria-hidden="true">&#10003;</div><div><b>All clear.</b> Nothing is overdue, late or waiting on a person right now.</div></div>';
+  return h + '<div class="grid wide">' + g + '</div>';
 }
 
 function overviewHtml(d) {
   var k = d.kpi, can = unlocked();
-  var h = '<h2>Snapshot</h2><div class="grid">' +
+  var h = attnHtml(d);
+  h += '<h2>Snapshot</h2><div class="grid">' +
     stat('Open cases', 'open', k.open) + stat('Closed this month', 'cm', k.cm) +
     stat('Currently late', 'late', k.late, k.late > 0 ? 'red' : '') + stat('Total cases', 'tot', k.total) +
     stat('Open, high priority', 'hi', k.high, 'red') + stat('Open, medium', 'me', k.medium, 'amber') + stat('Open, low', 'lo', k.low, 'green') + '</div>';
   h += '<h2>Where open cases are waiting</h2><div class="grid">';
   ['MDO', 'Accounts', 'CA', 'MD'].forEach(function (s) { h += stat(s, 'p' + s, d.pipeline[s]); });
   h += stat('Second review visits pending', 'pSR', d.pipeline['Second Review'], d.pipeline['Second Review'] ? 'amber' : '');
-  h += '</div><div class="grid" style="margin-top:16px"><div class="card"><div class="mono">SLA health</div><table><tr><th></th><th class="n">On time</th><th class="n">Late</th><th class="n">Done</th></tr>';
+  h += '</div>' + chartsHtml(d);
+  h += '<div class="grid" style="margin-top:16px"><div class="card"><div class="mono">SLA health</div><table><tr><th></th><th class="n">On time</th><th class="n">Late</th><th class="n">Done</th></tr>';
   ['MDO', 'Accounts', 'CA'].forEach(function (s) { var x = d.sla[s]; h += '<tr><td>' + s + '</td>' + num('so' + s, x.OK) + num('sl' + s, x.LATE) + num('sd' + s, x.Done) + '</tr>'; });
-  h += '</table></div>' + list('Open by vertical', d.vertical, 'v') + list('Open by case type', d.caseType, 'c') + list('Final decisions', d.decisions, 'd') + '</div>';
+  h += '</table></div>' + list('Open by vertical', d.vertical, 'v') + list('Open by case type', d.caseType, 'c') + '</div>';
 
   h += '<h2>Second reviews</h2><div class="grid">' + stat('Waiting for the visit / form', 'sra', d.sr.awaiting.length, d.sr.awaiting.length ? 'amber' : '') +
     stat('Overdue', 'sro', d.sr.overdue, d.sr.overdue ? 'red' : '') +
@@ -262,21 +444,22 @@ function overviewHtml(d) {
        (can ? '<button class="solid" data-srall="1">Find and send all missing emails</button>' : '') + '</div>';
   if (!d.sr.awaiting.length) h += '<p>None right now.</p>';
   else {
-    h += '<div class="scroll"><table><tr><th>Case ID</th><th>Customer</th><th>Vertical</th><th>Case status</th><th>Final decision</th><th>Review status</th><th>Due</th><th>Visit owner</th><th>Email</th><th></th></tr>';
+    h += '<div class="scroll"><table class="stack"><thead><tr><th>Case ID</th><th>Customer</th><th>Vertical</th><th>Case status</th><th>Final decision</th><th>Review status</th><th>Due</th><th>Visit owner</th><th>Email</th><th></th></tr></thead><tbody>';
     d.sr.awaiting.forEach(function (r) {
-      h += '<tr' + (r.overdue ? ' class="overdue"' : '') + '><td>' + caseLink(r.id) + '</td><td>' + esc(r.name) + '</td><td>' + esc(r.vertical) + '</td><td>' + esc(r.status) + '</td><td>' + esc(r.decision) + '</td><td>' + esc(r.label) +
-        '</td><td>' + (r.due ? esc(r.due.toLocaleDateString()) + (r.overdue ? ' <span class="pill High">Overdue</span>' : '') : '') + '</td><td>' +
-        (r.owner ? esc(r.owner) : (r.label === 'Pending visit' ? '<span class="pill Medium">Not assigned</span>' : '')) + '</td><td>' + mailCell(r) + '</td><td>' +
+      h += '<tr' + (r.overdue ? ' class="overdue"' : '') + '><td data-label="Case">' + caseLink(r.id) + '</td><td data-label="Customer">' + esc(r.name) + '</td><td data-label="Vertical">' + esc(r.vertical) +
+        '</td><td data-label="Case status">' + esc(r.status) + '</td><td data-label="Decision">' + esc(r.decision) + '</td><td data-label="Review">' + esc(r.label) +
+        '</td><td data-label="Due">' + (r.due ? rel(r.due) + (r.overdue ? ' <span class="pill bad">Overdue</span>' : '') : '') + '</td><td data-label="Owner">' +
+        (r.owner ? esc(r.owner) : (r.label === 'Pending visit' ? '<span class="pill warn">Not assigned</span>' : '')) + '</td><td data-label="Email">' + mailCell(r) + '</td><td>' +
         (can ? '<div class="btns"><button data-sr="' + esc(r.id) + '">' + (r.notSent ? 'Send now' : 'Send again') + '</button><button data-owner="' + esc(r.id) + '">Assign owner</button></div>' : '') + '</td></tr>';
     });
-    h += '</table></div>';
+    h += '</tbody></table></div>';
   }
   h += '</div>';
 
   if (d.sr.reconfirm.length) {
-    h += '<div class="card" style="margin-top:16px"><div class="mono">Second review submitted on an already-decided case. The MD should reconfirm or amend the decision</div><div class="scroll"><table><tr><th>Case ID</th><th>Customer</th><th>Vertical</th><th>Current decision</th></tr>';
-    d.sr.reconfirm.forEach(function (r) { h += '<tr><td>' + caseLink(r.id) + '</td><td>' + esc(r.name) + '</td><td>' + esc(r.vertical) + '</td><td>' + esc(r.decision) + '</td></tr>'; });
-    h += '</table></div></div>';
+    h += '<div class="card" style="margin-top:16px"><div class="mono">Second review submitted on an already-decided case. The MD should reconfirm or amend the decision</div><div class="scroll"><table class="stack"><thead><tr><th>Case ID</th><th>Customer</th><th>Vertical</th><th>Current decision</th></tr></thead><tbody>';
+    d.sr.reconfirm.forEach(function (r) { h += '<tr><td data-label="Case">' + caseLink(r.id) + '</td><td data-label="Customer">' + esc(r.name) + '</td><td data-label="Vertical">' + esc(r.vertical) + '</td><td data-label="Decision">' + esc(r.decision) + '</td></tr>'; });
+    h += '</tbody></table></div></div>';
   }
 
   h += '<div class="card" style="margin-top:16px"><div class="mono">Completed second reviews, newest first</div>';
@@ -285,64 +468,153 @@ function overviewHtml(d) {
     var when = toDate(s['Timestamp']), rec = String(s['Recommendation'] || '');
     h += '<details><summary><b>' + esc(s['Case ID']) + '</b> ' + esc(s['Customer Name']) + ' <span>' + (when ? esc(when.toLocaleDateString()) + '. ' : '') +
       esc(rec.length > 90 ? rec.slice(0, 90) + '...' : rec) + '</span></summary><div class="ans">';
-    SR_QUESTIONS.forEach(function (q) { if (q in s || q !== 'Visit conducted by' && q.indexOf('Independent') !== 0) h += '<b>' + esc(q) + '</b>' + esc(s[q] || '-'); });
+    SR_QUESTIONS.forEach(function (q) { if (q in s || (q !== 'Visit conducted by' && q.indexOf('Independent') !== 0)) h += '<b>' + esc(q) + '</b>' + esc(s[q] || '-'); });
     h += '</div></details>';
   });
   h += '</div>';
   return h;
 }
 
-var view = 'overview', lastData = null, closedQuery = '';
-function caseLink(id) { return '<a href="#" data-case="' + esc(id) + '">' + esc(id) + '</a>'; }
-function decCls(x) { return x === 'Approved' ? 'Approved' : x === 'Rejected' ? 'Rejected' : x ? 'cond' : ''; }
-function fmt(dt) { return dt ? dt.toLocaleDateString() : ''; }
-
-var openQuery = '';
-function openRows(d) {
-  var q = openQuery.toLowerCase(), can = unlocked();
-  var list = d.cases.filter(function (r) { return !q || (r.id + ' ' + r.name + ' ' + r.vertical + ' ' + r.stage + ' ' + r.priority).toLowerCase().indexOf(q) > -1; });
-  if (!list.length) return '<p class="none">' + (d.cases.length ? 'No open cases match.' : 'No open cases right now.') + '</p>';
-  var h = '<div class="scroll"><table><tr><th>Case ID</th><th>Customer</th><th>Vertical</th><th>Type</th><th>Waiting on</th><th>Priority</th><th class="n">Days open</th><th></th></tr>';
-  list.forEach(function (r) {
-    h += '<tr><td>' + caseLink(r.id) + '</td><td>' + esc(r.name) + '</td><td>' + esc(r.vertical) + '</td><td>' + esc((d.byId[r.id] || {}).type) + '</td><td>' + esc(r.stage) +
-      '</td><td>' + (r.priority ? '<span class="pill ' + esc(r.priority) + '">' + esc(r.priority) + '</span>' : '') + '</td><td class="n">' + esc(r.days) +
-      '</td><td>' + (can ? '<button data-resend="' + esc(r.id) + '">Resend email</button>' : '') + '</td></tr>';
-  });
-  return h + '</table></div>';
+// ---- filtering, sorting, CSV export for the two case tables ----
+var view = 'overview', lastData = null;
+var F = { open: { q: '', vert: '', pri: '', stage: '', late: false }, closed: { q: '', vert: '', dec: '' } };
+var S = { open: { key: 'days', dir: -1 }, closed: { key: 'closedOn', dir: -1 } };
+function sortVal(o, key) {
+  var v = o[key];
+  if (key === 'priority') return { High: 3, Medium: 2, Low: 1 }[v] || 0;
+  if (v instanceof Date) return v.getTime();
+  if (key === 'late') return o.lateFlags.length;
+  if (typeof v === 'number') return v;
+  if (v === '' || v == null) return -1;
+  return String(v).toLowerCase();
 }
-
-function closedRows(d) {
-  var q = closedQuery.toLowerCase(), h = '';
-  var list = d.closed.filter(function (c) { return !q || (c.id + ' ' + c.name + ' ' + c.decision + ' ' + c.vertical).toLowerCase().indexOf(q) > -1; });
-  if (!list.length) return '<p class="none">No closed cases match.</p>';
-  h += '<div class="scroll"><table><tr><th>Case ID</th><th>Customer</th><th>Vertical</th><th>Type</th><th>Final decision</th><th>Closed on</th><th class="n">Days taken</th></tr>';
-  list.forEach(function (c) {
-    var days = c.opened && c.closedOn ? Math.floor((c.closedOn - c.opened) / 86400000) : '';
-    h += '<tr><td>' + caseLink(c.id) + '</td><td>' + esc(c.name) + '</td><td>' + esc(c.vertical) + '</td><td>' + esc(c.type) + '</td><td>' +
-      (c.decision ? '<span class="pill ' + decCls(c.decision) + '">' + esc(c.decision) + '</span>' : '') + '</td><td>' + esc(fmt(c.closedOn)) + '</td><td class="n">' + esc(days) + '</td></tr>';
+function sortRows(rows, st) {
+  return rows.slice().sort(function (a, b) {
+    var x = sortVal(a, st.key), y = sortVal(b, st.key);
+    if (typeof x === 'string' || typeof y === 'string') return String(x).localeCompare(String(y)) * st.dir;
+    return (x - y) * st.dir;
   });
-  return h + '</table></div>';
+}
+function openFiltered(d) {
+  var f = F.open, q = f.q.toLowerCase();
+  var rows = d.cases.filter(function (r) {
+    if (q && (r.id + ' ' + r.name + ' ' + r.vertical + ' ' + r.stage + ' ' + r.priority).toLowerCase().indexOf(q) < 0) return false;
+    if (f.vert && r.vertical !== f.vert) return false;
+    if (f.pri && r.priority !== f.pri) return false;
+    if (f.stage && r.stage !== f.stage) return false;
+    if (f.late && !r.lateFlags.length) return false;
+    return true;
+  });
+  return sortRows(rows, S.open);
+}
+function closedFiltered(d) {
+  var f = F.closed, q = f.q.toLowerCase();
+  var rows = d.closed.filter(function (c) {
+    if (q && (c.id + ' ' + c.name + ' ' + c.decision + ' ' + c.vertical).toLowerCase().indexOf(q) < 0) return false;
+    if (f.vert && c.vertical !== f.vert) return false;
+    if (f.dec && c.decision !== f.dec) return false;
+    return true;
+  });
+  return sortRows(rows, S.closed);
+}
+function th(label, table, key, cls) {
+  var st = S[table], on = st.key === key;
+  return '<th scope="col"' + (cls ? ' class="' + cls + '"' : '') + ' aria-sort="' + (on ? (st.dir > 0 ? 'ascending' : 'descending') : 'none') + '"><button class="sortbtn" data-sort="' + table + ':' + key + '">' +
+    esc(label) + (on ? (st.dir > 0 ? ' &#9650;' : ' &#9660;') : '') + '</button></th>';
+}
+function openRows(d) {
+  var can = unlocked(), list = openFiltered(d);
+  if (!list.length) return '<p class="none">' + (d.cases.length ? 'No open cases match these filters.' : 'No open cases right now.') + '</p>';
+  var h = '<div class="scroll"><table class="stack"><thead><tr>' + th('Case ID', 'open', 'id') + th('Customer', 'open', 'name') + th('Vertical', 'open', 'vertical') + th('Type', 'open', 'type') +
+    th('Waiting on', 'open', 'stage') + th('Priority', 'open', 'priority') + th('SLA', 'open', 'late') + th('Days open', 'open', 'days', 'n') + '<th></th></tr></thead><tbody>';
+  list.forEach(function (r) {
+    h += '<tr><td data-label="Case">' + caseLink(r.id) + '</td><td data-label="Customer">' + esc(r.name) + '</td><td data-label="Vertical">' + esc(r.vertical) + '</td><td data-label="Type">' + esc(r.type) + '</td><td data-label="Waiting on">' + esc(r.stage) +
+      '</td><td data-label="Priority">' + (r.priority ? '<span class="pill ' + esc(r.priority) + '">' + esc(r.priority) + '</span>' : '') + '</td><td data-label="SLA">' +
+      (r.lateFlags.length ? '<span class="pill bad">Late: ' + esc(r.lateFlags.join(', ')) + '</span>' : '<span class="pill ok">On time</span>') +
+      '</td><td data-label="Days open" class="n">' + esc(r.days) + '</td><td>' + (can ? '<button data-resend="' + esc(r.id) + '">Resend email</button>' : '') + '</td></tr>';
+  });
+  return h + '</tbody></table></div><div class="more">' + list.length + ' of ' + d.cases.length + ' open cases shown</div>';
+}
+function closedRows(d) {
+  var list = closedFiltered(d);
+  if (!list.length) return '<p class="none">No closed cases match these filters.</p>';
+  var h = '<div class="scroll"><table class="stack"><thead><tr>' + th('Case ID', 'closed', 'id') + th('Customer', 'closed', 'name') + th('Vertical', 'closed', 'vertical') + th('Type', 'closed', 'type') +
+    th('Final decision', 'closed', 'decision') + th('Closed on', 'closed', 'closedOn') + th('Days taken', 'closed', 'days', 'n') + '</tr></thead><tbody>';
+  list.forEach(function (c) {
+    h += '<tr><td data-label="Case">' + caseLink(c.id) + '</td><td data-label="Customer">' + esc(c.name) + '</td><td data-label="Vertical">' + esc(c.vertical) + '</td><td data-label="Type">' + esc(c.type) + '</td><td data-label="Decision">' +
+      (c.decision ? '<span class="pill ' + decCls(c.decision) + '">' + esc(c.decision) + '</span>' : '') + '</td><td data-label="Closed">' + rel(c.closedOn) + '</td><td data-label="Days taken" class="n">' + esc(c.days) + '</td></tr>';
+  });
+  return h + '</tbody></table></div><div class="more">' + list.length + ' of ' + d.closed.length + ' closed cases shown</div>';
+}
+function opt(val, label, cur) { return '<option value="' + esc(val) + '"' + (val === cur ? ' selected' : '') + '>' + esc(label) + '</option>'; }
+function openFilters() {
+  var f = F.open;
+  return '<div class="filters"><div><label for="qo">Search</label><input class="search" id="qo" placeholder="Case ID, customer, stage..." value="' + esc(f.q) + '"></div>' +
+    '<div><label for="fo-vert">Vertical</label><select id="fo-vert">' + opt('', 'All', f.vert) + opt('Polymer', 'Polymer', f.vert) + opt('Textile', 'Textile', f.vert) + '</select></div>' +
+    '<div><label for="fo-pri">Priority</label><select id="fo-pri">' + opt('', 'All', f.pri) + opt('High', 'High', f.pri) + opt('Medium', 'Medium', f.pri) + opt('Low', 'Low', f.pri) + '</select></div>' +
+    '<div><label for="fo-stage">Waiting on</label><select id="fo-stage">' + opt('', 'All', f.stage) + STAGES.map(function (s) { return opt(s, s, f.stage); }).join('') + '</select></div>' +
+    '<div class="chk"><input type="checkbox" id="fo-late"' + (f.late ? ' checked' : '') + '><label for="fo-late">Late only</label></div>' +
+    '<div><button data-export="open">Export CSV</button></div></div>';
+}
+function closedFilters() {
+  var f = F.closed;
+  var decs = ['Approved', 'Approved with conditions', 'Rejected', 'Flagged for monitoring'];
+  return '<div class="filters"><div><label for="q">Search</label><input class="search" id="q" placeholder="Case ID, customer, decision..." value="' + esc(f.q) + '"></div>' +
+    '<div><label for="fc-vert">Vertical</label><select id="fc-vert">' + opt('', 'All', f.vert) + opt('Polymer', 'Polymer', f.vert) + opt('Textile', 'Textile', f.vert) + '</select></div>' +
+    '<div><label for="fc-dec">Decision</label><select id="fc-dec">' + opt('', 'All', f.dec) + decs.map(function (x) { return opt(x, x, f.dec); }).join('') + '</select></div>' +
+    '<div><button data-export="closed">Export CSV</button></div></div>';
+}
+function csvCell(v) {
+  var s = v instanceof Date ? v.toISOString().slice(0, 10) : String(v == null ? '' : v);
+  if (/^[=+\-@\t\r]/.test(s)) s = "'" + s; // stops spreadsheet formula injection
+  return '"' + s.replace(/"/g, '""') + '"';
+}
+function exportCsv(which) {
+  if (!lastData) return;
+  var head, rows, name;
+  if (which === 'open') {
+    head = ['Case ID', 'Customer', 'Vertical', 'Type', 'Waiting on', 'Priority', 'Late at', 'Days open'];
+    rows = openFiltered(lastData).map(function (r) { return [r.id, r.name, r.vertical, r.type, r.stage, r.priority, r.lateFlags.join(' / '), r.days]; });
+    name = 'open-cases';
+  } else {
+    head = ['Case ID', 'Customer', 'Vertical', 'Type', 'Final decision', 'Closed on', 'Days taken'];
+    rows = closedFiltered(lastData).map(function (c) { return [c.id, c.name, c.vertical, c.type, c.decision, c.closedOn, c.days]; });
+    name = 'closed-cases';
+  }
+  var csv = [head].concat(rows).map(function (r) { return r.map(csvCell).join(','); }).join('\r\n');
+  var blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' }), a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = name + '-' + new Date().toISOString().slice(0, 10) + '.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+  toast('Exported ' + rows.length + ' rows.');
+}
+function refreshLists() {
+  if (!lastData) return;
+  if ($('openList')) $('openList').innerHTML = openRows(lastData);
+  if ($('closedList')) $('closedList').innerHTML = closedRows(lastData);
+  restoreExpanded();
 }
 
 function render(d) {
   lastData = d;
-  var h = '<div class="tabs"><button class="tab' + (view === 'overview' ? ' on' : '') + '" data-view="overview">Overview</button>' +
-          '<button class="tab' + (view === 'open' ? ' on' : '') + '" data-view="open">Open cases (' + d.cases.length + ')</button>' +
-          '<button class="tab' + (view === 'closed' ? ' on' : '') + '" data-view="closed">Closed cases (' + d.closed.length + ')</button></div>';
+  var n = attnTotal(d);
+  var h = '<div class="tabs" role="group" aria-label="Views"><button class="tab' + (view === 'overview' ? ' on' : '') + '" data-view="overview" aria-pressed="' + (view === 'overview') + '">Overview' + (n ? ' (' + n + ')' : '') + '</button>' +
+          '<button class="tab' + (view === 'open' ? ' on' : '') + '" data-view="open" aria-pressed="' + (view === 'open') + '">Open cases (' + d.cases.length + ')</button>' +
+          '<button class="tab' + (view === 'closed' ? ' on' : '') + '" data-view="closed" aria-pressed="' + (view === 'closed') + '">Closed cases (' + d.closed.length + ')</button></div>';
   if (view === 'open') {
-    h += '<div class="head"><h2>Open cases, oldest first</h2>' + (unlocked() ? '<button class="solid" id="newBtn">Open new case</button>' : '') + '</div>' +
-         '<div class="card"><input class="search" id="qo" placeholder="Search case ID, customer, stage, priority..." value="' + esc(openQuery) + '">' +
-         '<div id="openList">' + openRows(d) + '</div></div>';
+    h += '<div class="head"><h2>Open cases</h2>' + (unlocked() ? '<button class="solid" id="newBtn">Open new case</button>' : '') + '</div>' +
+         '<div class="card">' + openFilters() + '<div id="openList">' + openRows(d) + '</div></div>';
   } else if (view === 'closed') {
-    h += '<h2>All closed cases</h2><div class="card"><input class="search" id="q" placeholder="Search case ID, customer, decision..." value="' + esc(closedQuery) + '">' +
-         '<div id="closedList">' + closedRows(d) + '</div></div>';
+    h += '<h2>All closed cases</h2><div class="card">' + closedFilters() + '<div id="closedList">' + closedRows(d) + '</div></div>';
   } else h += overviewHtml(d);
+  var active = document.activeElement && document.activeElement.id;
   $('app').innerHTML = h;
+  if (active && $(active) && $(active).focus && /^(qo|q)$/.test(active)) { var el = $(active); el.focus(); try { el.setSelectionRange(el.value.length, el.value.length); } catch (e) {} }
   restoreExpanded();
-  live('Updated ' + d.updated + '. Checks for changes every 30 seconds.', false);
+  live('Updated ' + d.updated + (n ? '. ' + n + ' item' + (n === 1 ? '' : 's') + ' need attention' : '. All clear'), false);
 }
 
-// ---- Case detail: every form response for one case ----
+// ---- Case detail: timeline + every form response for one case ----
 var formTabs = [['Form1_MDO', 'MDO Stage 1', 'Visit Form uploaded?'], ['Form2_Accounts', 'Accounts check', 'Prompt Output Received'],
                 ['Form3_CA', 'CA review', 'CA Recommendation'], ['Form4_MD', 'MD final decision', 'Comments for MDO'], ['Form5_SecondReview', 'Second review', 'Key People Met & Designation']];
 var forms = null, formsAt = 0;
@@ -351,11 +623,30 @@ function loadForms() {
   return Promise.all(formTabs.map(function (f) { return fetchFormTab(f[0], f[2]); })).then(function (r) { forms = r; formsAt = Date.now(); return r; });
 }
 function linkify(t) { return esc(t).replace(/(https?:\/\/[^\s,<]+)/g, '<a href="$1" target="_blank" rel="noopener">Open file</a>'); }
-function detailHtml(c, data) {
-  var h = '<div class="detailBox"><div class="meta">' + [c.vertical, c.type, c.status === 'Closed' ? 'Closed' : 'Waiting on ' + c.stage, c.decision, c.priority && c.priority + ' priority'].filter(Boolean).map(esc).join('. ') +
-    (c.folder ? '. <a href="' + esc(c.folder) + '" target="_blank" rel="noopener">Case folder</a>' : '') + '</div>';
-  if (c.skipped) h += '<h3>Skipped stages</h3><div class="ans">' + esc(c.skipped) + '</div>';
-  var skip = ['Timestamp', 'Case ID', 'Customer Name', 'Company Name'];
+function timelineSteps(c) {
+  var sk = c.skipped || '';
+  var st = [{ k: 'MDO', date: c.mdoDate, from: c.opened, skipped: false }, { k: 'Accounts', date: c.accDate, from: c.mdoDate, skipped: /SKIPPED Accounts/.test(sk) },
+            { k: 'CA', date: c.caDate, from: c.accDate, skipped: /SKIPPED CA/.test(sk) }, { k: 'MD', date: c.mdDate, from: c.caDate, skipped: false }];
+  st.forEach(function (s) {
+    s.days = (s.date && s.from && !s.skipped) ? dayDiff(s.date, s.from) : null;
+    s.state = s.skipped ? 'skipped' : (s.date || c.status === 'Closed') ? 'done' : (c.stage === s.k && c.status === 'Open') ? 'current' : 'todo';
+  });
+  return st;
+}
+function timelineHtml(c) {
+  var h = '<h3>Progress</h3><div class="tl" role="list">';
+  timelineSteps(c).forEach(function (s) {
+    h += '<div class="tl-step ' + s.state + '" role="listitem"><span class="dot"></span><div class="tl-k">' + s.k + '</div><div class="tl-d">' +
+      (s.state === 'skipped' ? 'Skipped' : s.date ? esc(s.date.toLocaleDateString()) : s.state === 'current' ? 'In progress' : 'Not yet') + '</div><div class="tl-n">' +
+      (s.days != null ? s.days + ' d' : '&nbsp;') + '</div></div>';
+  });
+  h += '<div class="tl-step ' + (c.status === 'Closed' ? 'done' : 'todo') + '" role="listitem"><span class="dot"></span><div class="tl-k">Decision</div><div class="tl-d">' +
+    (c.decision ? '<span class="pill ' + decCls(c.decision) + '">' + esc(c.decision) + '</span>' : 'Pending') + '</div><div class="tl-n">&nbsp;</div></div></div>';
+  if (c.srStatus) h += '<div class="meta">Second review: <b>' + esc(c.srStatus) + '</b>' + (c.srDue ? '. Due ' + esc(c.srDue.toLocaleDateString()) : '') + (c.srOwner ? '. Owner: ' + esc(c.srOwner) : '') + '</div>';
+  return h;
+}
+function responsesHtml(c, data) {
+  var h = '', skip = ['Timestamp', 'Case ID', 'Customer Name', 'Company Name'];
   formTabs.forEach(function (f, i) {
     var mine = data[i].rows.filter(function (o) { return String(o['Case ID']).trim().toUpperCase() === c.id.toUpperCase(); });
     h += '<h3>' + f[1] + '</h3>';
@@ -370,7 +661,40 @@ function detailHtml(c, data) {
       h += '</div>';
     });
   });
-  return h + '</div>';
+  return h;
+}
+function detailHtml(c, data) {
+  var h = '<div class="detailBox"><div class="head"><div class="meta">' + [c.vertical, c.type, c.status === 'Closed' ? 'Closed' : 'Waiting on ' + c.stage, c.decision, c.priority && c.priority + ' priority'].filter(Boolean).map(esc).join('. ') +
+    (c.folder ? '. <a href="' + esc(c.folder) + '" target="_blank" rel="noopener">Case folder</a>' : '') + '</div><button data-print="' + esc(c.id) + '">Print / PDF</button></div>';
+  h += timelineHtml(c);
+  if (c.history) h += '<h3>Decision history</h3><div class="ans">' + esc(c.history) + '</div>';
+  if (c.skipped) h += '<h3>Skipped stages</h3><div class="ans">' + esc(c.skipped) + '</div>';
+  return h + responsesHtml(c, data) + '</div>';
+}
+function printCase(id) {
+  var c = lastData && lastData.byId[id]; if (!c) return;
+  loadForms().then(function (data) {
+    var w = window.open('', '_blank');
+    if (!w) { toast('Allow pop-ups for this page to print.'); return; }
+    var steps = timelineSteps(c).map(function (s) {
+      return '<tr><td>' + s.k + '</td><td>' + (s.state === 'skipped' ? 'Skipped' : s.date ? esc(s.date.toLocaleDateString()) : s.state === 'current' ? 'In progress' : 'Not yet') + '</td><td>' + (s.days != null ? s.days + ' days' : '') + '</td></tr>';
+    }).join('');
+    var html = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + esc(c.id) + ' ' + esc(c.name) + '</title><style>' +
+      'body{font:13px/1.5 Arial,sans-serif;color:#111;margin:28px}h1{font-size:20px;margin:0 0 4px}h3{font-size:14px;margin:18px 0 4px;border-bottom:1px solid #ccc;padding-bottom:2px}' +
+      'table{border-collapse:collapse;width:100%}td,th{border:1px solid #ccc;padding:5px 8px;text-align:left}.ans{white-space:pre-wrap;margin:2px 0 8px}.ans b{display:block;margin-top:6px}.meta{color:#555}.none{color:#777}' +
+      '.pill{padding:1px 8px;border:1px solid #999;border-radius:8px}a{color:#111}</style></head><body>' +
+      '<h1>' + esc(c.id) + '. ' + esc(c.name) + '</h1><div class="meta">DSCDA Financial Health Check. Generated ' + esc(new Date().toLocaleString()) + '</div>' +
+      '<h3>Summary</h3><table><tr><td>Vertical</td><td>' + esc(c.vertical) + '</td><td>Type</td><td>' + esc(c.type) + '</td></tr>' +
+      '<tr><td>Priority</td><td>' + esc(c.priority) + '</td><td>Status</td><td>' + (c.status === 'Closed' ? 'Closed' : 'Waiting on ' + esc(c.stage)) + '</td></tr>' +
+      '<tr><td>Final decision</td><td colspan="3"><b>' + esc(c.decision || 'Pending') + '</b></td></tr>' +
+      (c.srStatus ? '<tr><td>Second review</td><td colspan="3">' + esc(c.srStatus) + (c.srOwner ? '. Owner: ' + esc(c.srOwner) : '') + '</td></tr>' : '') + '</table>' +
+      '<h3>Progress</h3><table><tr><th>Stage</th><th>Date</th><th>Time taken</th></tr>' + steps + '</table>' +
+      (c.history ? '<h3>Decision history</h3><div class="ans">' + esc(c.history) + '</div>' : '') +
+      (c.skipped ? '<h3>Skipped stages</h3><div class="ans">' + esc(c.skipped) + '</div>' : '') +
+      responsesHtml(c, data) + '</body></html>';
+    w.document.open(); w.document.write(html); w.document.close(); w.focus();
+    setTimeout(function () { try { w.print(); } catch (e) {} }, 500);
+  });
 }
 // Responses appear inline, directly under the case's row. Expanded cases stay open across the 30 s refresh.
 var expanded = {};
@@ -393,50 +717,63 @@ function toggleCase(a) {
 function restoreExpanded() {
   var links = document.querySelectorAll('a[data-case]');
   for (var i = 0; i < links.length; i++) {
-    var id = links[i].getAttribute('data-case');
-    if (expanded[id]) { links[i].setAttribute('aria-expanded', 'true'); insertDetail(links[i].closest('tr'), id); }
+    var id = links[i].getAttribute('data-case'), tr = links[i].closest('tr');
+    if (expanded[id] && !(tr.nextElementSibling && tr.nextElementSibling.className === 'detailRow')) { links[i].setAttribute('aria-expanded', 'true'); insertDetail(tr, id); }
   }
 }
 
-function load() {
-  Promise.all([fetchTracker(), fetchSecond()]).then(function (x) { render(compute(x[0], x[1])); })
-    .catch(function (e) { live(e.message + ' Retrying.', true); });
+function load(manual) {
+  var b = $('refresh'); if (manual) { b.disabled = true; b.textContent = 'Refreshing...'; }
+  Promise.all([fetchTracker(), fetchSecond()]).then(function (x) { render(compute(x[0], x[1])); if (manual) toast('Data refreshed.'); })
+    .catch(function (e) { live(e.message + ' Retrying.', true); })
+    .then(function () { b.disabled = false; b.textContent = 'Refresh'; });
 }
 
 document.addEventListener('click', function (e) {
-  var cid = e.target.getAttribute && e.target.getAttribute('data-case');
-  if (cid) { e.preventDefault(); toggleCase(e.target); return; }
-  var v = e.target.getAttribute && e.target.getAttribute('data-view');
+  var t = e.target, g = function (n) { return t.getAttribute && t.getAttribute(n); };
+  var cid = g('data-case');
+  if (cid) { e.preventDefault(); toggleCase(t); return; }
+  var v = g('data-view');
   if (v) { view = v; if (lastData) render(lastData); return; }
-  if (e.target.id === 'newBtn') { $('cn').value = ''; $('dlg').showModal(); }
+  var so = g('data-sort');
+  if (so) { var p = so.split(':'); var st = S[p[0]]; if (st.key === p[1]) st.dir = -st.dir; else { st.key = p[1]; st.dir = (p[1] === 'days' || p[1] === 'closedOn' || p[1] === 'priority' || p[1] === 'late') ? -1 : 1; } refreshLists(); return; }
+  var ex = g('data-export'); if (ex) { exportCsv(ex); return; }
+  var pr = g('data-print'); if (pr) { printCase(pr); return; }
+  if (t.id === 'newBtn') { $('cn').value = ''; $('dlg').showModal(); }
 
-  var own = e.target.getAttribute && e.target.getAttribute('data-owner');
+  var own = g('data-owner');
   if (own) {
     var who = prompt('Who is doing the visit for ' + own + '? Enter name and email, e.g. Ravi Kumar ravi@company.com');
     if (!who || !who.trim()) return;
-    e.target.disabled = true;
+    t.disabled = true;
     write({ action: 'assignOwner', caseId: own, owner: who.trim() })
-      .then(function (j) { toast(j.message); setTimeout(load, 3000); }).catch(function (x) { toast(x.message); }).then(function () { e.target.disabled = false; });
+      .then(function (j) { toast(j.message); setTimeout(load, 3000); }).catch(function (x) { toast(x.message); }).then(function () { t.disabled = false; });
     return;
   }
 
-  var sr = e.target.getAttribute && e.target.getAttribute('data-sr'), srAll = e.target.getAttribute && e.target.getAttribute('data-srall');
+  var sr = g('data-sr'), srAll = g('data-srall');
   if ((sr && confirm('Email Sales and Accounts to request a Second Review for ' + sr + '?')) || (srAll && confirm('Find every case where the MD asked for a Second Review but no request is on record, and send them now?'))) {
-    e.target.disabled = true;
+    t.disabled = true;
     write(sr ? { action: 'sendSecondReview', caseId: sr } : { action: 'sendAllSecondReview' })
-      .then(function (j) { toast(j.message); setTimeout(load, 4000); }).catch(function (x) { toast(x.message); setTimeout(load, 4000); }).then(function () { e.target.disabled = false; });
+      .then(function (j) { toast(j.message); setTimeout(load, 4000); }).catch(function (x) { toast(x.message); setTimeout(load, 4000); }).then(function () { t.disabled = false; });
     return;
   }
-  var id = e.target.getAttribute && e.target.getAttribute('data-resend');
+  var id = g('data-resend');
   if (id && confirm('Resend the pending-stage email for ' + id + '?')) {
-    e.target.disabled = true;
-    write({ action: 'resend', caseId: id }).then(function (j) { toast(j.message); }).catch(function (x) { toast(x.message); }).then(function () { e.target.disabled = false; });
+    t.disabled = true;
+    write({ action: 'resend', caseId: id }).then(function (j) { toast(j.message); }).catch(function (x) { toast(x.message); }).then(function () { t.disabled = false; });
   }
 });
 $('cancel').onclick = function () { $('dlg').close(); };
-document.addEventListener('input', function (e) {
-  if (e.target.id === 'qo' && lastData) { openQuery = e.target.value; $('openList').innerHTML = openRows(lastData); restoreExpanded(); }
-  if (e.target.id === 'q' && lastData) { closedQuery = e.target.value; $('closedList').innerHTML = closedRows(lastData); restoreExpanded(); } });
+function onFilter(e) {
+  var id = e.target.id, val = e.target.type === 'checkbox' ? e.target.checked : e.target.value, map = {
+    qo: ['open', 'q'], 'fo-vert': ['open', 'vert'], 'fo-pri': ['open', 'pri'], 'fo-stage': ['open', 'stage'], 'fo-late': ['open', 'late'],
+    q: ['closed', 'q'], 'fc-vert': ['closed', 'vert'], 'fc-dec': ['closed', 'dec'] };
+  if (!map[id]) return;
+  F[map[id][0]][map[id][1]] = val; refreshLists();
+}
+document.addEventListener('input', onFilter);
+document.addEventListener('change', onFilter);
 $('create').onclick = function () {
   var b = $('create'); b.disabled = true; b.textContent = 'Opening...';
   write({ action: 'newCase', customerName: $('cn').value, vertical: $('cv').value, caseType: $('ct').value })
