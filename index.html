@@ -26,7 +26,10 @@
   .sub { text-align:center; color:var(--muted); font-size:16px; margin:0 0 34px; }
   h2 { font:600 22px "Source Serif 4",serif; color:var(--head); margin:30px 0 12px; }
   .grid { display:grid; gap:16px; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); }
-  .grid.wide { grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); }
+  .grid.kpi { grid-template-columns:repeat(auto-fit,minmax(138px,1fr)); }
+  .grid.two { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  td[data-label="Case"] { white-space:nowrap; }
+  .grid.wide { grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); align-items:start; }
   .card { background:var(--card); border:1px solid var(--line); border-radius:20px; padding:20px 22px; box-shadow:0 6px 24px var(--shadow); }
   .big { font:600 38px/1.1 "Source Serif 4",serif; color:var(--head); margin:6px 0 2px; font-variant-numeric:tabular-nums; }
   .card.red { background:var(--red); } .card.amber { background:var(--amber); } .card.green { background:var(--green); }
@@ -63,12 +66,13 @@
   .filters > div { min-width:120px; } .filters label { margin:0 0 3px; font-size:12px; color:var(--muted); }
   .filters input.search { min-width:220px; } .filters .chk { display:flex; align-items:center; gap:6px; padding-bottom:8px; } .filters .chk input { width:auto; } .filters .chk label { margin:0; }
   /* charts */
-  .chart { width:100%; height:auto; } .chart text { fill:var(--muted); font:11px Inter,sans-serif; } .chart text.cv { fill:var(--ink); font-weight:600; }
+  .chart { width:100%; max-width:380px; height:auto; display:block; margin:0 auto; } .chart text { fill:var(--muted); font:11px Inter,sans-serif; } .chart text.cv { fill:var(--ink); font-weight:600; }
   .legend { display:flex; flex-wrap:wrap; gap:6px 14px; margin-top:8px; font-size:12px; } .legend i { display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:5px; }
   .donutwrap { display:flex; align-items:center; gap:18px; flex-wrap:wrap; } .donutwrap svg { width:140px; height:140px; flex:none; }
   /* timeline */
-  .tl { display:flex; gap:0; margin:12px 0 4px; overflow-x:auto; padding-bottom:6px; }
-  .tl-step { flex:1; min-width:96px; text-align:center; position:relative; padding-top:22px; font-size:12px; }
+  .tl { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:0; margin:12px 0 4px; padding-bottom:6px; }
+  .tl-step { min-width:0; text-align:center; position:relative; padding:22px 2px 0; font-size:12px; overflow-wrap:anywhere; }
+  .tl-step .pill { white-space:normal; max-width:100%; }
   .tl-step::before { content:""; position:absolute; top:7px; left:-50%; width:100%; height:2px; background:var(--line); }
   .tl-step:first-child::before { display:none; }
   .tl-step .dot { position:absolute; top:0; left:50%; transform:translateX(-50%); width:16px; height:16px; border-radius:50%; background:var(--line); border:2px solid var(--surface); z-index:1; }
@@ -81,7 +85,21 @@
   .attn-ok { display:flex; align-items:center; gap:12px; }
   .attn-ok .tick { width:34px; height:34px; border-radius:50%; background:var(--good); color:#fff; display:grid; place-items:center; font-size:18px; }
   .more { color:var(--muted); font-size:12px; margin-top:6px; }
+  button.linkbtn { border:0; background:none; padding:4px 0; color:var(--blue); text-decoration:underline; font-size:12px; }
+  .attn td { padding:6px 6px; } .attn td:first-child { white-space:nowrap; }
+  /* case pop-up */
+  dialog#cdlg { width:min(900px,94vw); max-width:none; max-height:90vh; padding:0; overflow:hidden; }
+  dialog#cdlg[open] { display:flex; flex-direction:column; }
+  dialog#cdlg::backdrop { background:rgba(20,48,95,.45); }
+  .chead { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; padding:18px 24px 14px; border-bottom:1px solid var(--line); background:var(--surface); }
+  .chead h2 { margin:0; font-size:22px; } .chead .meta { color:var(--muted); margin-top:2px; }
+  #cbody { padding:4px 24px 26px; overflow:auto; flex:1; } #cbody:focus { outline:none; }
+  #cbody h3 { font:600 17px "Source Serif 4",serif; color:var(--head); margin:20px 0 4px; }
+  #cbody .meta, #cbody .none { color:var(--muted); }
+  .pending { color:var(--muted); background:var(--detail); border:1px solid var(--line); border-radius:12px; padding:8px 12px; margin-top:14px; font-size:13px; }
   @media (max-width:720px) {
+    .bar { position:static; }
+    .grid.two { grid-template-columns:1fr; } .grid.kpi { grid-template-columns:repeat(2,minmax(0,1fr)); }
     h1 { font-size:28px; } .wrap { padding:0 12px 48px; } .big { font-size:30px; }
     table.stack thead { display:none; }
     table.stack, table.stack tbody, table.stack tr, table.stack td { display:block; width:100%; }
@@ -91,6 +109,9 @@
     table.stack td:empty { display:none; }
     tr.detailRow { padding:0 !important; } tr.detailRow > td { display:block; text-align:left; } tr.detailRow > td::before { content:none; }
     .btns { justify-content:flex-end; }
+    dialog#cdlg { width:100vw; height:100vh; max-height:100vh; margin:0; border-radius:0; border:0; }
+    .chead { padding:14px 14px 10px; flex-wrap:wrap; } #cbody { padding:2px 14px 22px; }
+    .tl-step { font-size:10.5px; } .tl-step .pill { font-size:10.5px; padding:2px 6px; }
   }
   @media (prefers-reduced-motion:reduce) { .changed, .sk { animation:none; } }
   @media print { .bar, .tabs, button { display:none !important; } body { background:#fff; } }
@@ -119,6 +140,13 @@
   <label for="cv">Vertical</label><select id="cv"><option>Polymer</option><option>Textile</option></select>
   <label for="ct">Case type</label><select id="ct"><option>NEW</option><option>ANNUAL</option><option>EXCEPTION</option></select>
   <div class="row"><button id="cancel">Cancel</button><button class="solid" id="create">Open case</button></div>
+</dialog>
+<dialog id="cdlg" aria-labelledby="ctitle">
+  <div class="chead">
+    <div><h2 id="ctitle"></h2><div class="meta" id="csub"></div></div>
+    <div class="btns"><button id="cprint">Print / PDF</button><button class="solid" id="cclose">Close</button></div>
+  </div>
+  <div id="cbody" tabindex="-1" autofocus></div>
 </dialog>
 <div id="toast" role="status" aria-live="polite"></div>
 
@@ -231,7 +259,7 @@ function compute(all, second) {
       if (info.lateFlags.length) d.attn.late.push({ id: info.id, name: info.name, text: 'Late at ' + info.lateFlags.join(', '), days: o ? Math.floor((now - o) / 86400000) : 0 });
       if (info.stage === 'MD') {
         var since = info.caDate || info.accDate || info.opened;
-        d.attn.mdWaiting.push({ id: info.id, name: info.name, text: since ? dayDiff(now, since) + ' days waiting' : 'Waiting', days: since ? dayDiff(now, since) : 0 });
+        d.attn.mdWaiting.push({ id: info.id, name: info.name, text: since ? dayDiff(now, since) + (dayDiff(now, since) === 1 ? ' day' : ' days') + ' waiting' : 'Waiting', days: since ? dayDiff(now, since) : 0 });
       }
     } else if (st === 'Closed') {
       d.kpi.closed++; d.closed.push(info);
@@ -394,7 +422,7 @@ function chartsHtml(d) {
                   { label: 'Rejected', value: d.decisions['Rejected'], color: 'var(--bad)' },
                   { label: 'Monitoring', value: d.decisions['Flagged for monitoring'], color: 'var(--muted)' }];
   var durItems = STAGES.map(function (s) { return { label: s, value: avg(d.stageDays[s]), n: d.stageDays[s].length }; });
-  return '<h2>Insights</h2><div class="grid wide">' +
+  return '<h2>Insights</h2><div class="grid two">' +
     '<div class="card"><div class="mono">Open cases by stage</div>' + barChart(stageItems, 'Open cases by stage') + '</div>' +
     '<div class="card"><div class="mono">Final decisions</div>' + donut(decItems, 'Final decisions') + '</div>' +
     '<div class="card"><div class="mono">Opened vs closed, last 6 months</div>' + monthChart(d.months) + '</div>' +
@@ -402,19 +430,21 @@ function chartsHtml(d) {
 }
 
 // ---- needs-attention panel ----
-function attnGroup(title, cls, items) {
+var attnOpen = {};
+function attnGroup(key, title, cls, items) {
   if (!items.length) return '';
-  var h = '<div class="card ' + cls + '"><div class="head"><div class="mono">' + title + '</div><span class="pill ' + (cls === 'red' ? 'bad' : 'warn') + '">' + items.length + '</span></div><table>';
-  items.slice(0, 5).forEach(function (r) { h += '<tr><td>' + caseLink(r.id) + '</td><td>' + esc(r.name) + '</td><td>' + esc(r.text) + '</td></tr>'; });
+  var all = !!attnOpen[key], shown = all ? items : items.slice(0, 5);
+  var h = '<div class="card attn ' + cls + '"><div class="head"><div class="mono">' + title + '</div><span class="pill ' + (cls === 'red' ? 'bad' : 'warn') + '">' + items.length + '</span></div><table>';
+  shown.forEach(function (r) { h += '<tr><td>' + caseLink(r.id) + '</td><td>' + esc(r.name) + '</td><td>' + esc(r.text) + '</td></tr>'; });
   h += '</table>';
-  if (items.length > 5) h += '<div class="more">+ ' + (items.length - 5) + ' more</div>';
+  if (items.length > 5) h += '<button class="linkbtn" data-attn="' + key + '">' + (all ? 'Show fewer' : 'Show all ' + items.length) + '</button>';
   return h + '</div>';
 }
 function attnTotal(d) { var a = d.attn; return a.overdue.length + a.late.length + a.mdWaiting.length + a.mail.length + a.reconfirm.length + a.noOwner.length; }
 function attnHtml(d) {
-  var a = d.attn, g = attnGroup('Overdue second-review visits', 'red', a.overdue) + attnGroup('Past SLA', 'red', a.late) +
-    attnGroup('Email problems', 'red', a.mail) + attnGroup('Waiting for MD decision', 'amber', a.mdWaiting) +
-    attnGroup('MD to reconfirm after second review', 'amber', a.reconfirm) + attnGroup('Visit owner not assigned', 'amber', a.noOwner);
+  var a = d.attn, g = attnGroup('overdue', 'Overdue second-review visits', 'red', a.overdue) + attnGroup('late', 'Past SLA', 'red', a.late) +
+    attnGroup('mail', 'Email problems', 'red', a.mail) + attnGroup('md', 'Waiting for MD decision', 'amber', a.mdWaiting) +
+    attnGroup('reconfirm', 'MD to reconfirm after second review', 'amber', a.reconfirm) + attnGroup('owner', 'Visit owner not assigned', 'amber', a.noOwner);
   var h = '<h2>Needs attention</h2>';
   if (!g) return h + '<div class="card green attn-ok"><div class="tick" aria-hidden="true">&#10003;</div><div><b>All clear.</b> Nothing is overdue, late or waiting on a person right now.</div></div>';
   return h + '<div class="grid wide">' + g + '</div>';
@@ -423,11 +453,11 @@ function attnHtml(d) {
 function overviewHtml(d) {
   var k = d.kpi, can = unlocked();
   var h = attnHtml(d);
-  h += '<h2>Snapshot</h2><div class="grid">' +
+  h += '<h2>Snapshot</h2><div class="grid kpi">' +
     stat('Open cases', 'open', k.open) + stat('Closed this month', 'cm', k.cm) +
     stat('Currently late', 'late', k.late, k.late > 0 ? 'red' : '') + stat('Total cases', 'tot', k.total) +
     stat('Open, high priority', 'hi', k.high, 'red') + stat('Open, medium', 'me', k.medium, 'amber') + stat('Open, low', 'lo', k.low, 'green') + '</div>';
-  h += '<h2>Where open cases are waiting</h2><div class="grid">';
+  h += '<h2>Where open cases are waiting</h2><div class="grid kpi">';
   ['MDO', 'Accounts', 'CA', 'MD'].forEach(function (s) { h += stat(s, 'p' + s, d.pipeline[s]); });
   h += stat('Second review visits pending', 'pSR', d.pipeline['Second Review'], d.pipeline['Second Review'] ? 'amber' : '');
   h += '</div>' + chartsHtml(d);
@@ -435,7 +465,7 @@ function overviewHtml(d) {
   ['MDO', 'Accounts', 'CA'].forEach(function (s) { var x = d.sla[s]; h += '<tr><td>' + s + '</td>' + num('so' + s, x.OK) + num('sl' + s, x.LATE) + num('sd' + s, x.Done) + '</tr>'; });
   h += '</table></div>' + list('Open by vertical', d.vertical, 'v') + list('Open by case type', d.caseType, 'c') + '</div>';
 
-  h += '<h2>Second reviews</h2><div class="grid">' + stat('Waiting for the visit / form', 'sra', d.sr.awaiting.length, d.sr.awaiting.length ? 'amber' : '') +
+  h += '<h2>Second reviews</h2><div class="grid kpi">' + stat('Waiting for the visit / form', 'sra', d.sr.awaiting.length, d.sr.awaiting.length ? 'amber' : '') +
     stat('Overdue', 'sro', d.sr.overdue, d.sr.overdue ? 'red' : '') +
     stat('Done, MD to reconfirm', 'srr', d.sr.reconfirm.length, d.sr.reconfirm.length ? 'amber' : '') +
     stat('Second reviews completed', 'srd', d.sr.done.length, 'green') + '</div>';
@@ -592,7 +622,6 @@ function refreshLists() {
   if (!lastData) return;
   if ($('openList')) $('openList').innerHTML = openRows(lastData);
   if ($('closedList')) $('closedList').innerHTML = closedRows(lastData);
-  restoreExpanded();
 }
 
 function render(d) {
@@ -610,7 +639,7 @@ function render(d) {
   var active = document.activeElement && document.activeElement.id;
   $('app').innerHTML = h;
   if (active && $(active) && $(active).focus && /^(qo|q)$/.test(active)) { var el = $(active); el.focus(); try { el.setSelectionRange(el.value.length, el.value.length); } catch (e) {} }
-  restoreExpanded();
+  if ($('cdlg').open) renderCase();
   live('Updated ' + d.updated + (n ? '. ' + n + ' item' + (n === 1 ? '' : 's') + ' need attention' : '. All clear'), false);
 }
 
@@ -646,11 +675,11 @@ function timelineHtml(c) {
   return h;
 }
 function responsesHtml(c, data) {
-  var h = '', skip = ['Timestamp', 'Case ID', 'Customer Name', 'Company Name'];
+  var h = '', skip = ['Timestamp', 'Case ID', 'Customer Name', 'Company Name'], waiting = [];
   formTabs.forEach(function (f, i) {
     var mine = data[i].rows.filter(function (o) { return String(o['Case ID']).trim().toUpperCase() === c.id.toUpperCase(); });
+    if (!mine.length) { waiting.push(f[1]); return; }
     h += '<h3>' + f[1] + '</h3>';
-    if (!mine.length) { h += '<div class="none">No response yet.</div>'; return; }
     mine.forEach(function (o) {
       var when = toDate(o['Timestamp']);
       h += '<div class="meta">Submitted ' + esc(when ? when.toLocaleString() : '') + '</div><div class="ans">';
@@ -661,16 +690,36 @@ function responsesHtml(c, data) {
       h += '</div>';
     });
   });
+  if (waiting.length) h += '<div class="pending">Not submitted yet: ' + esc(waiting.join(', ')) + '</div>';
   return h;
 }
-function detailHtml(c, data) {
-  var h = '<div class="detailBox"><div class="head"><div class="meta">' + [c.vertical, c.type, c.status === 'Closed' ? 'Closed' : 'Waiting on ' + c.stage, c.decision, c.priority && c.priority + ' priority'].filter(Boolean).map(esc).join('. ') +
-    (c.folder ? '. <a href="' + esc(c.folder) + '" target="_blank" rel="noopener">Case folder</a>' : '') + '</div><button data-print="' + esc(c.id) + '">Print / PDF</button></div>';
-  h += timelineHtml(c);
+function caseBody(c, data) {
+  var h = timelineHtml(c);
   if (c.history) h += '<h3>Decision history</h3><div class="ans">' + esc(c.history) + '</div>';
   if (c.skipped) h += '<h3>Skipped stages</h3><div class="ans">' + esc(c.skipped) + '</div>';
-  return h + responsesHtml(c, data) + '</div>';
+  return h + responsesHtml(c, data);
 }
+var currentCase = null;
+function renderCase() {
+  var c = lastData && currentCase && lastData.byId[currentCase]; if (!c) return;
+  $('ctitle').textContent = c.id + '. ' + c.name;
+  $('csub').innerHTML = [c.vertical, c.type, c.status === 'Closed' ? 'Closed' : 'Waiting on ' + esc(c.stage), c.priority && c.priority + ' priority'].filter(Boolean).map(function (x) { return x; }).join('. ') +
+    (c.decision ? '. <span class="pill ' + decCls(c.decision) + '">' + esc(c.decision) + '</span>' : '') +
+    (c.folder ? '. <a href="' + esc(c.folder) + '" target="_blank" rel="noopener">Case folder</a>' : '');
+  var body = $('cbody'), top = body.scrollTop;
+  body.innerHTML = forms ? caseBody(c, forms) : '<p class="none">Loading responses...</p>';
+  body.scrollTop = top;
+  loadForms().then(function (data) { if (currentCase === c.id) { var t2 = body.scrollTop; body.innerHTML = caseBody(c, data); body.scrollTop = t2; } });
+}
+function openCase(id) {
+  currentCase = id;
+  var dlg = $('cdlg'); if (!dlg.open) dlg.showModal();
+  $('cbody').scrollTop = 0; renderCase();
+}
+$('cclose').onclick = function () { $('cdlg').close(); };
+$('cprint').onclick = function () { if (currentCase) printCase(currentCase); };
+$('cdlg').addEventListener('click', function (e) { if (e.target === $('cdlg')) $('cdlg').close(); });
+$('cdlg').addEventListener('close', function () { currentCase = null; });
 function printCase(id) {
   var c = lastData && lastData.byId[id]; if (!c) return;
   loadForms().then(function (data) {
@@ -696,32 +745,6 @@ function printCase(id) {
     setTimeout(function () { try { w.print(); } catch (e) {} }, 500);
   });
 }
-// Responses appear inline, directly under the case's row. Expanded cases stay open across the 30 s refresh.
-var expanded = {};
-function fillDetail(box, id) {
-  var c = lastData && lastData.byId[id]; if (!c) return;
-  if (forms) box.innerHTML = detailHtml(c, forms); // show what we already have, then refresh quietly
-  loadForms().then(function (data) { box.innerHTML = detailHtml(c, data); });
-}
-function insertDetail(tr, id) {
-  var row = document.createElement('tr'); row.className = 'detailRow';
-  row.innerHTML = '<td colspan="' + tr.cells.length + '"><div class="detailBox none">Loading responses...</div></td>';
-  tr.parentNode.insertBefore(row, tr.nextSibling);
-  fillDetail(row.firstChild.firstChild, id);
-}
-function toggleCase(a) {
-  var id = a.getAttribute('data-case'), tr = a.closest('tr'), nxt = tr.nextElementSibling;
-  if (nxt && nxt.className === 'detailRow') { nxt.remove(); delete expanded[id]; a.setAttribute('aria-expanded', 'false'); return; }
-  expanded[id] = true; a.setAttribute('aria-expanded', 'true'); insertDetail(tr, id);
-}
-function restoreExpanded() {
-  var links = document.querySelectorAll('a[data-case]');
-  for (var i = 0; i < links.length; i++) {
-    var id = links[i].getAttribute('data-case'), tr = links[i].closest('tr');
-    if (expanded[id] && !(tr.nextElementSibling && tr.nextElementSibling.className === 'detailRow')) { links[i].setAttribute('aria-expanded', 'true'); insertDetail(tr, id); }
-  }
-}
-
 function load(manual) {
   var b = $('refresh'); if (manual) { b.disabled = true; b.textContent = 'Refreshing...'; }
   Promise.all([fetchTracker(), fetchSecond()]).then(function (x) { render(compute(x[0], x[1])); if (manual) toast('Data refreshed.'); })
@@ -732,11 +755,12 @@ function load(manual) {
 document.addEventListener('click', function (e) {
   var t = e.target, g = function (n) { return t.getAttribute && t.getAttribute(n); };
   var cid = g('data-case');
-  if (cid) { e.preventDefault(); toggleCase(t); return; }
+  if (cid) { e.preventDefault(); openCase(cid); return; }
   var v = g('data-view');
   if (v) { view = v; if (lastData) render(lastData); return; }
   var so = g('data-sort');
   if (so) { var p = so.split(':'); var st = S[p[0]]; if (st.key === p[1]) st.dir = -st.dir; else { st.key = p[1]; st.dir = (p[1] === 'days' || p[1] === 'closedOn' || p[1] === 'priority' || p[1] === 'late') ? -1 : 1; } refreshLists(); return; }
+  var at = g('data-attn'); if (at) { attnOpen[at] = !attnOpen[at]; if (lastData) render(lastData); return; }
   var ex = g('data-export'); if (ex) { exportCsv(ex); return; }
   var pr = g('data-print'); if (pr) { printCase(pr); return; }
   if (t.id === 'newBtn') { $('cn').value = ''; $('dlg').showModal(); }
